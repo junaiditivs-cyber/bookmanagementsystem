@@ -1,0 +1,6 @@
+{
+  "name": "Junaid BookFlow Pro",
+  "description": "A simple, user-friendly, professional book stock management system for publishers, warehouses, sales, returns, and real-time reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,1088 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* =========================================================
+   THEME TOKENS
+   One light theme and one dark theme only.
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  --app-bg: #f4f7fc;
+  --app-bg-secondary: #edf3fb;
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef3f9;
+  --surface-hover: #edf4ff;
+
+  --text-main: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+
+  --border: rgba(148, 163, 184, 0.28);
+  --border-strong: rgba(59, 130, 246, 0.28);
+
+  --field: #ffffff;
+  --field-hover: #f8fafc;
+  --field-border: rgba(148, 163, 184, 0.36);
+
+  --blue: #2563eb;
+  --indigo: #4f46e5;
+  --cyan: #0891b2;
+  --pink: #db2777;
+  --purple: #9333ea;
+
+  --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.07);
+  --shadow-card: 0 5px 16px rgba(15, 23, 42, 0.07);
+  --shadow-glow: 0 14px 34px rgba(37, 99, 235, 0.22);
+}
+
+html.dark,
+body.dark,
+.dark {
+  color-scheme: dark;
+
+  /*
+   * Professional navy dark mode.
+   * Blue is the primary accent. Purple and pink are reserved
+   * for small semantic accents instead of large surfaces.
+   */
+  --app-bg: #08111f;
+  --app-bg-secondary: #0d1829;
+  --surface-1: #111d2f;
+  --surface-2: #17253a;
+  --surface-3: #1e2f49;
+  --surface-hover: #263a57;
+
+  --text-main: #f8fafc;
+  --text-secondary: #d7e1ed;
+  --text-muted: #a3b2c6;
+  --text-subtle: #8091aa;
+
+  --border: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(96, 165, 250, 0.42);
+
+  --field: #16243a;
+  --field-hover: #1b2c45;
+  --field-border: rgba(148, 163, 184, 0.22);
+
+  --blue: #3b82f6;
+  --indigo: #4f46e5;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+  --purple: #a78bfa;
+
+  --shadow-soft: 0 12px 30px rgba(2, 6, 23, 0.28);
+  --shadow-card: 0 8px 22px rgba(2, 6, 23, 0.24);
+  --shadow-glow: 0 14px 34px rgba(59, 130, 246, 0.24);
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  max-width: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--app-bg);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+/* =========================================================
+   APPLICATION BACKGROUND
+   ========================================================= */
+
+.premium-app-bg {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(37, 99, 235, 0.12), transparent 31%),
+    radial-gradient(circle at 92% 10%, rgba(168, 85, 247, 0.09), transparent 28%),
+    linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
+  background-attachment: scroll;
+}
+
+.dark .premium-app-bg {
+  background:
+    radial-gradient(circle at 8% 6%, rgba(59, 130, 246, 0.13), transparent 34%),
+    radial-gradient(circle at 96% 4%, rgba(79, 70, 229, 0.07), transparent 30%),
+    linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-secondary) 100%);
+}
+
+.premium-app-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, #000, transparent 86%);
+}
+
+.dark .premium-app-bg::before {
+  background-image:
+    linear-gradient(rgba(226, 232, 240, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 232, 240, 0.022) 1px, transparent 1px);
+}
+
+/* =========================================================
+   SHARED SURFACES
+   ========================================================= */
+
+.glass-panel,
+.glass-card,
+.premium-card,
+.premium-topbar,
+.premium-sidebar {
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-soft);
+}
+
+.glass-card,
+.premium-card {
+  border-radius: 24px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-card);
+}
+
+.premium-topbar {
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface-1) 94%, transparent);
+}
+
+.premium-sidebar {
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-right-color: var(--border);
+}
+
+.dark .premium-sidebar {
+  background: #0e1a2b;
+  border-right-color: rgba(148, 163, 184, 0.14);
+  box-shadow: 12px 0 34px rgba(2, 6, 23, 0.22);
+}
+
+.dark .premium-topbar {
+  background: #111d2f;
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+   ========================================================= */
+
+.premium-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.premium-nav-item:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+.dark .premium-nav-item:hover {
+  background: #202c40;
+}
+
+.premium-nav-item-active {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.26);
+}
+
+.premium-nav-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.09);
+  color: #2563eb;
+}
+
+.dark .premium-nav-icon {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+}
+
+.premium-nav-icon-active {
+  background: rgba(255, 255, 255, 0.17) !important;
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   TOPBAR CONTROLS
+   ========================================================= */
+
+.premium-theme-toggle,
+.premium-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-card);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.premium-theme-toggle {
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.premium-theme-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn-premium-pink,
+.btn-primary,
+.premium-primary {
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 11px 26px rgba(37, 99, 235, 0.24) !important;
+  transition: filter 0.16s ease, box-shadow 0.16s ease !important;
+}
+
+.btn-premium-pink:hover,
+.btn-primary:hover,
+.premium-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.29) !important;
+}
+
+.btn-premium-gray,
+.btn-secondary,
+.premium-secondary {
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  background: var(--surface-2) !important;
+  color: var(--text-secondary) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: background-color 0.16s ease, border-color 0.16s ease !important;
+}
+
+.btn-premium-gray:hover,
+.btn-secondary:hover,
+.premium-secondary:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--border-strong) !important;
+}
+
+button:disabled,
+.btn-primary:disabled,
+.btn-premium-pink:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.58 !important;
+  filter: none !important;
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.glass-input,
+.premium-form-input,
+input,
+select,
+textarea {
+  border: 1px solid var(--field-border) !important;
+  border-radius: 16px !important;
+  background: var(--field) !important;
+  color: var(--text-main) !important;
+  box-shadow: none !important;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease !important;
+}
+
+.glass-input:hover,
+.premium-form-input:hover,
+input:hover,
+select:hover,
+textarea:hover {
+  background: var(--field-hover) !important;
+}
+
+.glass-input:focus,
+.premium-form-input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: rgba(59, 130, 246, 0.68) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-subtle) !important;
+  opacity: 1;
+}
+
+select option {
+  background: var(--surface-1) !important;
+  color: var(--text-main) !important;
+}
+
+/* =========================================================
+   DARK MODE LEGACY UTILITY ADAPTERS
+   These rules make existing page classes readable without
+   editing every component separately.
+   ========================================================= */
+
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .font-display,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: var(--text-main) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+.dark .text-slate-400 {
+  color: var(--text-subtle) !important;
+}
+
+.dark .text-blue-900,
+.dark .text-blue-800,
+.dark .text-blue-700 {
+  color: #bfdbfe !important;
+}
+
+.dark .text-indigo-900,
+.dark .text-indigo-800,
+.dark .text-indigo-700 {
+  color: #c7d2fe !important;
+}
+
+.dark .text-violet-900,
+.dark .text-violet-800,
+.dark .text-violet-700,
+.dark .text-purple-900,
+.dark .text-purple-800,
+.dark .text-purple-700 {
+  color: #ddd6fe !important;
+}
+
+.dark .text-emerald-900,
+.dark .text-emerald-800,
+.dark .text-emerald-700 {
+  color: #a7f3d0 !important;
+}
+
+.dark .text-amber-900,
+.dark .text-amber-800,
+.dark .text-amber-700,
+.dark .text-orange-900,
+.dark .text-orange-800,
+.dark .text-orange-700 {
+  color: #fde68a !important;
+}
+
+.dark .text-rose-900,
+.dark .text-rose-800,
+.dark .text-rose-700,
+.dark .text-pink-900,
+.dark .text-pink-800,
+.dark .text-pink-700 {
+  color: #fecdd3 !important;
+}
+
+.dark .bg-white,
+.dark .bg-white\/40,
+.dark .bg-white\/50,
+.dark .bg-white\/60,
+.dark .bg-white\/70,
+.dark .bg-white\/75,
+.dark .bg-white\/80,
+.dark .bg-white\/90,
+.dark .bg-white\/95 {
+  background-color: var(--surface-1) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/40,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/60,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/80,
+.dark .bg-slate-100,
+.dark .bg-slate-100\/50,
+.dark .bg-slate-100\/60,
+.dark .bg-slate-100\/70,
+.dark .bg-slate-100\/80 {
+  background-color: var(--surface-2) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/40,
+.dark .border-slate-200\/50,
+.dark .border-slate-200\/60,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-300,
+.dark .border-white\/60,
+.dark .border-white\/70 {
+  border-color: var(--border) !important;
+}
+
+/* Soft colored panels and badges that do not already have dark variants. */
+.dark .bg-blue-50,
+.dark .bg-blue-50\/50,
+.dark .bg-blue-50\/70,
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.13) !important;
+}
+
+.dark .bg-indigo-50,
+.dark .bg-indigo-100,
+.dark .bg-violet-50,
+.dark .bg-violet-100,
+.dark .bg-purple-50,
+.dark .bg-purple-100 {
+  background-color: rgba(129, 140, 248, 0.13) !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-100,
+.dark .bg-green-50,
+.dark .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.13) !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-100,
+.dark .bg-orange-50,
+.dark .bg-orange-100,
+.dark .bg-yellow-50,
+.dark .bg-yellow-100 {
+  background-color: rgba(245, 158, 11, 0.13) !important;
+}
+
+.dark .bg-rose-50,
+.dark .bg-rose-100,
+.dark .bg-pink-50,
+.dark .bg-pink-100,
+.dark .bg-red-50,
+.dark .bg-red-100 {
+  background-color: rgba(244, 63, 94, 0.13) !important;
+}
+
+/* =========================================================
+   DARK MODE SPECIAL CARDS AND GRADIENTS
+   ========================================================= */
+
+/* Dashboard Grade Sets shortcut was previously a bright white card. */
+.dark #dashboard-view > button.bg-gradient-to-br {
+  background: linear-gradient(135deg, #253047 0%, #202c40 52%, #2d2945 100%) !important;
+  border-color: rgba(244, 114, 182, 0.24) !important;
+}
+
+.dark #dashboard-view > button.bg-gradient-to-br:hover {
+  background: linear-gradient(135deg, #2a3851 0%, #25334a 52%, #342d4d 100%) !important;
+}
+
+/* Book cover/header cards that use a pale rose-to-slate gradient. */
+.dark #books-view .bg-gradient-to-br.from-rose-50 {
+  background: linear-gradient(135deg, #2b3144 0%, #202c40 100%) !important;
+}
+
+/* Neutral gradient headers used by grade-set cards. */
+.dark #grade-sets-view .bg-gradient-to-br.from-slate-50 {
+  background: linear-gradient(135deg, #253249 0%, #1d293d 100%) !important;
+}
+
+/* Prevent root-level text-slate-800 page wrappers from dimming the page. */
+.dark #dashboard-view,
+.dark #books-view,
+.dark #add-stock-view,
+.dark #sales-view,
+.dark #stock-list-view,
+.dark #grade-sets-view,
+.dark #publishers-view,
+.dark #locations-view,
+.dark #settings-view,
+.dark #returns-view,
+.dark #advanced-view,
+.dark #damage-loss-view,
+.dark #transfers-view,
+.dark #reports-view,
+.dark #quick-setup-view,
+.dark #smart-entry-view {
+  color: var(--text-secondary) !important;
+}
+
+/* =========================================================
+   DARK MODE CONSISTENCY OVERRIDES
+   Centralized adapters for existing Tailwind utility classes.
+   This keeps all current component logic and markup unchanged.
+   ========================================================= */
+
+.dark .glass-panel {
+  background: var(--surface-1) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.dark .glass-card,
+.dark .premium-card {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Neutral dark surfaces for old light-mode utility classes. */
+.dark .bg-white\/30,
+.dark .bg-white\/45,
+.dark .bg-white\/55,
+.dark .bg-white\/72,
+.dark .bg-white\/78,
+.dark .bg-white\/82,
+.dark .bg-white\/85 {
+  background-color: var(--surface-1) !important;
+}
+
+.dark .bg-slate-200,
+.dark .bg-slate-200\/80 {
+  background-color: var(--surface-3) !important;
+}
+
+.dark .border-white\/30,
+.dark .border-white\/40,
+.dark .border-white\/45,
+.dark .border-white\/55 {
+  border-color: var(--border) !important;
+}
+
+/* Keep disabled fields visible without making them look white or washed out. */
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+  background: #132036 !important;
+  color: var(--text-muted) !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+  opacity: 0.72 !important;
+}
+
+/* Checkbox and radio controls should use the same blue accent. */
+.dark input[type="checkbox"],
+.dark input[type="radio"] {
+  accent-color: #3b82f6;
+}
+
+/*
+ * Sales screen:
+ * remove the large pink/purple treatment and keep one clean
+ * navy + blue visual language. Semantic rose/amber/green
+ * colors remain available for warnings and stock states.
+ */
+.dark #sales-view > div:first-child {
+  border-color: var(--border) !important;
+}
+
+.dark #sales-view .glass-panel {
+  background: #111d2f !important;
+}
+
+.dark #sales-view button.border-slate-200.bg-white {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+
+.dark #sales-view button.border-slate-200.bg-white:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--border-strong) !important;
+}
+
+.dark #sales-view button.border-rose-300.bg-rose-50 {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(96, 165, 250, 0.72) !important;
+  --tw-ring-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+.dark #sales-view .bg-slate-50 {
+  background: var(--surface-2) !important;
+}
+
+.dark #sales-view .bg-white {
+  background: var(--surface-1) !important;
+}
+
+.dark #sales-view .border-rose-100.bg-rose-50 {
+  background: rgba(59, 130, 246, 0.10) !important;
+  border-color: rgba(96, 165, 250, 0.28) !important;
+  color: #bfdbfe !important;
+}
+
+.dark #sales-view .border-blue-100.bg-blue-50 {
+  background: rgba(59, 130, 246, 0.10) !important;
+  border-color: rgba(96, 165, 250, 0.28) !important;
+}
+
+.dark #sales-view .text-rose-500 {
+  color: #60a5fa !important;
+}
+
+.dark #sales-view thead {
+  background: #152239 !important;
+}
+
+.dark #sales-view tbody tr:hover {
+  background: #1b2c45 !important;
+}
+
+/* Consistent panels and headers across the remaining major screens. */
+.dark #dashboard-view .glass-panel,
+.dark #books-view .glass-panel,
+.dark #add-stock-view .glass-panel,
+.dark #stock-list-view .glass-panel,
+.dark #grade-sets-view .glass-panel,
+.dark #publishers-view .glass-panel,
+.dark #locations-view .glass-panel,
+.dark #settings-view .glass-panel,
+.dark #returns-view .glass-panel,
+.dark #advanced-view .glass-panel,
+.dark #damage-loss-view .glass-panel,
+.dark #transfers-view .glass-panel,
+.dark #reports-view .glass-panel,
+.dark #quick-setup-view .glass-panel,
+.dark #smart-entry-view .glass-panel {
+  background: var(--surface-1) !important;
+  border-color: var(--border) !important;
+}
+
+/* Modals remain distinct from the page but do not become pure black. */
+.dark [role="dialog"],
+.dark .fixed.inset-0 > .bg-white,
+.dark .fixed.inset-0 > .dark\:bg-slate-900 {
+  border-color: var(--border) !important;
+}
+
+/* Browser-native date/calendar controls remain visible in dark mode. */
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* Strong, readable focus without a pink or purple cast. */
+.dark button:focus-visible,
+.dark a:focus-visible,
+.dark input:focus-visible,
+.dark select:focus-visible,
+.dark textarea:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.78) !important;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--text-secondary);
+}
+
+thead {
+  background: var(--surface-2);
+}
+
+thead th {
+  color: var(--text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  transition: background-color 0.14s ease;
+}
+
+tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.045) !important;
+}
+
+.dark table {
+  color: var(--text-secondary) !important;
+}
+
+.dark thead {
+  background: var(--surface-2) !important;
+}
+
+.dark thead th {
+  color: #cbd5e1 !important;
+}
+
+.dark tbody tr {
+  border-color: var(--border) !important;
+}
+
+.dark tbody tr:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.status-available {
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  background: rgba(16, 185, 129, 0.13);
+  color: #047857;
+}
+
+.status-low {
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.status-out {
+  border: 1px solid rgba(244, 63, 94, 0.24);
+  background: rgba(244, 63, 94, 0.13);
+  color: #be123c;
+}
+
+.dark .status-available {
+  color: #a7f3d0;
+}
+
+.dark .status-low {
+  color: #fde68a;
+}
+
+.dark .status-out {
+  color: #fecdd3;
+}
+
+/* =========================================================
+   CHARTS
+   ========================================================= */
+
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: rgba(203, 213, 225, 0.12) !important;
+}
+
+.dark .recharts-text {
+  fill: #aebbd0 !important;
+}
+
+.dark .recharts-default-tooltip {
+  border-color: var(--border) !important;
+  background: var(--surface-2) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.dark .recharts-tooltip-label,
+.dark .recharts-tooltip-item {
+  color: var(--text-main) !important;
+}
+
+/* Recharts inline tooltip styles can force a white background. */
+.dark .recharts-tooltip-wrapper > div {
+  border-color: var(--border) !important;
+  background: var(--surface-2) !important;
+  color: var(--text-main) !important;
+}
+
+/* =========================================================
+   SHADOW HELPERS
+   ========================================================= */
+
+.shadow-soft {
+  box-shadow: var(--shadow-card) !important;
+}
+
+.shadow-premium-glow {
+  box-shadow: var(--shadow-glow) !important;
+}
+
+.dark .shadow-2xl,
+.dark .shadow-xl,
+.dark .shadow-lg,
+.dark .shadow-md,
+.dark .shadow-sm,
+.dark .shadow-xs,
+.dark .shadow-soft {
+  --tw-shadow-color: rgba(2, 6, 23, 0.26) !important;
+}
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.50);
+}
+
+.premium-scroll {
+  scrollbar-gutter: stable;
+}
+
+.premium-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+/* =========================================================
+   MOTION
+   ========================================================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeInUp 0.32s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1023px) {
+  .premium-sidebar {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 28px 28px 0 !important;
+  }
+
+  .premium-topbar {
+    border-radius: 22px !important;
+  }
+
+  .premium-theme-toggle,
+  .premium-pill {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+  }
+
+  .premium-nav-item {
+    padding: 10px 12px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .premium-app-bg::before {
+    background-size: 36px 36px;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.65rem !important;
+  }
+
+  h2 {
+    font-size: 1.05rem !important;
+  }
+
+  input,
+  select,
+  textarea,
+  .glass-input,
+  .premium-form-input {
+    min-height: 42px !important;
+    font-size: 13px !important;
+  }
+
+  table {
+    min-width: 720px;
+  }
+
+  .premium-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-sidebar {
+    width: min(86vw, 282px) !important;
+  }
+
+  .premium-theme-toggle span {
+    display: none;
+  }
+
+  .premium-theme-toggle {
+    width: 40px !important;
+    height: 40px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+  .no-print,
+  aside,
+  header,
+  button {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  .premium-app-bg {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  main,
+  .glass-panel,
+  .glass-card,
+  .premium-card {
+    border: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  table {
+    min-width: 0 !important;
+    color: #000000 !important;
+  }
+}
+
+/* =========================================================
+   INSTANT THEME SWITCH
+   Normal hover effects remain available outside the switch frame.
+   ========================================================= */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
