@@ -4,7 +4,6 @@ import helmet from "helmet";
 import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
-import { createServer as createViteServer } from "vite";
 import { DatabaseSchema, Publisher, Location, Category, Subject, ClassEntity, Book, StockEntry, StockBalance, StockHistory, Sale, SaleItem, CustomerReturn, PublisherReturn, StockTransfer, DamageLossRecord, LiveLog } from "./src/types";
 import { db } from "./src/db/index.ts";
 import { 
@@ -23,6 +22,16 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const DB_PATH = path.join(process.cwd(), "db.json");
 const SETTINGS_PATH = path.join(process.cwd(), "settings.json");
+
+let authInitializationPromise: Promise<void> | null = null;
+
+export function ensureAuthStoreInitialized(): Promise<void> {
+  if (!authInitializationPromise) {
+    authInitializationPromise = initializeAuthStore();
+  }
+
+  return authInitializationPromise;
+}
 
 const DATABASE_MODE = (process.env.DATABASE_MODE || "local").toLowerCase();
 const USE_LOCAL_DATABASE = DATABASE_MODE === "local";
@@ -57,6 +66,15 @@ app.use((req, res, next) => {
   });
 
   next();
+});
+
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureAuthStoreInitialized();
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use("/api/auth", authRouter);
@@ -1697,15 +1715,19 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   return res.status(error?.status || 500).json({ error: message });
 });
 
-// Setup Vite & Static Fallback
-async function startServer() {
-  await initializeAuthStore();
+// Local development and traditional Node production startup.
+// On Vercel, api/index.ts imports and exports this Express app instead.
+async function startLocalServer() {
+  await ensureAuthStoreInitialized();
 
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
+
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
+
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
@@ -1715,24 +1737,34 @@ async function startServer() {
       express.static(path.join(distPath, "assets"), {
         maxAge: "1y",
         immutable: true,
-      })
+      }),
     );
 
     app.use(
       express.static(distPath, {
         maxAge: "1h",
-      })
+      }),
     );
 
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.setHeader("Cache-Control", "no-store");
       res.sendFile(path.join(distPath, "index.html"));
     });
-  }  
+  }
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 }
 
-startServer();
+const isVercelRuntime = Boolean(process.env.VERCEL);
+
+if (!isVercelRuntime) {
+  void startLocalServer().catch((error) => {
+    console.error("Failed to start server:", error);
+    process.exitCode = 1;
+  });
+}
+
+export { app };
+export default app;
