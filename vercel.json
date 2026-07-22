@@ -1,7 +1,16 @@
-{
+﻿{
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": [
+        "api/_server.ts",
+        "server/**",
+        "src/**"
+      ]
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
