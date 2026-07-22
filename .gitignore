@@ -1,4 +1,3 @@
-@'
 node_modules/
 dist/
 build/
@@ -13,4 +12,3 @@ auth-data.json
 .sessions/
 db.json
 *.tmp
-'@ | Set-Content ".gitignore" -Encoding UTF8Remove-Item ".git" -Recurse -Force
