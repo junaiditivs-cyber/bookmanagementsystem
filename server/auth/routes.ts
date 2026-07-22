@@ -1,4 +1,4 @@
-import { Router, type Request } from "express";
+﻿import { Router, type Request } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import {
@@ -19,14 +19,16 @@ import {
   verifyPassword,
 } from "./password.ts";
 import {
-  ensureCsrfToken,
   requireAuth,
-  requireCsrf,
   requirePermission,
   toAuthUser,
 } from "./middleware.ts";
 import { PERMISSIONS } from "./permissions.ts";
-import { REMEMBER_ME_DURATION_MS, SESSION_DURATION_MS } from "./session.ts";
+import {
+  ACCESS_TOKEN_DURATION_MS,
+  REMEMBERED_TOKEN_DURATION_MS,
+  issueAuthToken,
+} from "./token.ts";
 import { USER_ROLES, type AppUserRecord, type UserRole } from "./types.ts";
 
 const authRouter = Router();
@@ -147,24 +149,6 @@ function publicUser(user: AppUserRecord) {
   };
 }
 
-function regenerateSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.session.regenerate((error) => (error ? reject(error) : resolve()));
-  });
-}
-
-function saveSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.session.save((error) => (error ? reject(error) : resolve()));
-  });
-}
-
-function destroySession(req: Request): Promise<void> {
-  return new Promise((resolve) => {
-    req.session.destroy(() => resolve());
-  });
-}
-
 async function passwordWasUsedBefore(user: AppUserRecord, password: string): Promise<boolean> {
   const hashes = [user.password_hash, ...user.password_history].filter(Boolean);
   for (const hash of hashes) {
@@ -269,18 +253,12 @@ authRouter.post("/login", loginLimiter, async (req, res, next) => {
       updated_by: user.email,
     });
 
-    await regenerateSession(req);
-    req.session.auth = {
-      userId: signedInUser.id,
-      email: signedInUser.email,
-      role: signedInUser.role,
-      sessionVersion: signedInUser.session_version,
-    };
-    req.session.cookie.maxAge = rememberMe
-      ? REMEMBER_ME_DURATION_MS
-      : SESSION_DURATION_MS;
-    const csrfToken = ensureCsrfToken(req);
-    await saveSession(req);
+    const token = issueAuthToken(
+      signedInUser,
+      rememberMe
+        ? REMEMBERED_TOKEN_DURATION_MS
+        : ACCESS_TOKEN_DURATION_MS,
+    );
 
     await audit(req, {
       action: "login",
@@ -292,17 +270,20 @@ authRouter.post("/login", loginLimiter, async (req, res, next) => {
       actorEmail: signedInUser.email,
     });
 
-    res.json({ user: toAuthUser(signedInUser), csrfToken });
+    res.json({
+      user: toAuthUser(signedInUser),
+      ...token,
+    });
   } catch (error) {
     next(error);
   }
 });
 
 authRouter.get("/me", requireAuth, async (req, res) => {
-  res.json({ user: req.authUser, csrfToken: ensureCsrfToken(req) });
+  res.json({ user: req.authUser });
 });
 
-authRouter.post("/logout", requireAuth, requireCsrf, async (req, res, next) => {
+authRouter.post("/logout", requireAuth, async (req, res, next) => {
   try {
     const currentUser = req.authUser;
     await audit(req, {
@@ -312,8 +293,6 @@ authRouter.post("/logout", requireAuth, requireCsrf, async (req, res, next) => {
       targetUserId: currentUser?.id,
       targetEmail: currentUser?.email,
     });
-    await destroySession(req);
-    res.clearCookie("ivs.books.sid", { path: "/" });
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -323,7 +302,6 @@ authRouter.post("/logout", requireAuth, requireCsrf, async (req, res, next) => {
 authRouter.post(
   "/change-password",
   requireAuth,
-  requireCsrf,
   async (req, res, next) => {
     const parsed = changePasswordSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -371,15 +349,10 @@ authRouter.post(
         updated_by: user.email,
       });
 
-      req.session.auth = {
-        userId: updated.id,
-        email: updated.email,
-        role: updated.role,
-        sessionVersion: updated.session_version,
-      };
-      req.session.csrfToken = undefined;
-      const csrfToken = ensureCsrfToken(req);
-      await saveSession(req);
+      const token = issueAuthToken(
+        updated,
+        ACCESS_TOKEN_DURATION_MS,
+      );
 
       await audit(req, {
         action: "change_password",
@@ -389,14 +362,20 @@ authRouter.post(
         targetEmail: updated.email,
       });
 
-      res.json({ user: toAuthUser(updated), csrfToken });
+      res.json({
+        user: toAuthUser(updated),
+        ...token,
+      });
     } catch (error) {
       next(error);
     }
   },
 );
 
-usersRouter.use(requireAuth, requireCsrf, requirePermission(PERMISSIONS.USERS_MANAGE));
+usersRouter.use(
+  requireAuth,
+  requirePermission(PERMISSIONS.USERS_MANAGE),
+);
 
 usersRouter.get("/", async (_req, res, next) => {
   try {
@@ -648,3 +627,4 @@ usersRouter.post("/:id/unlock", async (req, res, next) => {
 });
 
 export { authRouter, usersRouter };
+

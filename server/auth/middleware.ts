@@ -1,14 +1,22 @@
-import { randomBytes } from "crypto";
-import type {
+﻿import type {
   Request,
   Response,
   NextFunction,
 } from "express";
-import { findUserById } from "./store.ts";
+
+import {
+  findUserById,
+} from "./store.ts";
+
 import {
   getPermissionsForRole,
   roleHasPermission,
 } from "./permissions.ts";
+
+import {
+  verifyAuthToken,
+} from "./token.ts";
+
 import type {
   AppUserRecord,
   AuthUser,
@@ -35,15 +43,18 @@ export function toAuthUser(
   };
 }
 
-export function ensureCsrfToken(
+function getBearerToken(
   req: Request,
-): string {
-  if (!req.session.csrfToken) {
-    req.session.csrfToken =
-      randomBytes(32).toString("hex");
-  }
+): string | null {
+  const authorization = String(
+    req.get("authorization") || "",
+  ).trim();
 
-  return req.session.csrfToken;
+  const match = authorization.match(
+    /^Bearer\s+(.+)$/i,
+  );
+
+  return match?.[1]?.trim() || null;
 }
 
 export async function requireAuth(
@@ -52,52 +63,50 @@ export async function requireAuth(
   next: NextFunction,
 ) {
   try {
-    const sessionAuth =
-      req.session.auth;
+    const token = getBearerToken(req);
 
-    if (!sessionAuth?.userId) {
+    if (!token) {
+      return res.status(401).json({
+        error: "Authentication required.",
+      });
+    }
+
+    const payload =
+      verifyAuthToken(token);
+
+    if (!payload) {
       return res.status(401).json({
         error:
-          "Authentication required.",
+          "Your sign-in token is invalid or expired. Please sign in again.",
       });
     }
 
     const user = await findUserById(
-      sessionAuth.userId,
+      payload.userId,
     );
 
     if (
       !user ||
       user.status !== "active"
     ) {
-      req.session.destroy(
-        () => undefined,
-      );
-
       return res.status(401).json({
         error:
-          "Your session is no longer valid.",
+          "Your account is no longer active.",
       });
     }
 
     if (
       user.session_version !==
-      sessionAuth.sessionVersion
+      payload.sessionVersion
     ) {
-      req.session.destroy(
-        () => undefined,
-      );
-
       return res.status(401).json({
         error:
-          "Your session has expired. Please sign in again.",
+          "Your sign-in token has expired. Please sign in again.",
       });
     }
 
-    req.authUser =
-      toAuthUser(user);
-
-    ensureCsrfToken(req);
+    req.authUser = toAuthUser(user);
+    req.authToken = payload;
 
     next();
   } catch (error) {
@@ -147,35 +156,4 @@ export function requirePermission(
   };
 }
 
-export function requireCsrf(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  if (
-    ["GET", "HEAD", "OPTIONS"].includes(
-      req.method,
-    )
-  ) {
-    return next();
-  }
 
-  const expected =
-    req.session.csrfToken;
-
-  const supplied =
-    req.get("x-csrf-token");
-
-  if (
-    !expected ||
-    !supplied ||
-    expected !== supplied
-  ) {
-    return res.status(403).json({
-      error:
-        "Security token is missing or invalid. Refresh and try again.",
-    });
-  }
-
-  next();
-}

@@ -1,4 +1,7 @@
-import { AsyncLocalStorage } from "async_hooks";
+import {
+  AsyncLocalStorage,
+} from "async_hooks";
+
 import type {
   NextFunction,
   Request,
@@ -20,7 +23,8 @@ export function requestContextMiddleware(
   requestContext.run(
     {
       actorEmail:
-        req.session?.auth?.email || "system",
+        req.authUser?.email ||
+        "system",
     },
     next,
   );
@@ -28,7 +32,7 @@ export function requestContextMiddleware(
 
 export function getCurrentActorEmail(): string {
   return (
-    requestContext.getStore()?.actorEmail ||
-    "system"
+    requestContext.getStore()
+      ?.actorEmail || "system"
   );
 }

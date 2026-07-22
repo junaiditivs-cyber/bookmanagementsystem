@@ -11,10 +11,9 @@ import {
   stock_entries, stock_balances, stock_history, sales, sale_items,
   customer_returns, publisher_returns, stock_transfers, damage_loss_records, live_logs 
 } from "./src/db/schema.ts";
-import { createSessionMiddleware } from "./server/auth/session.ts";
 import { authRouter, usersRouter } from "./server/auth/routes.ts";
 import { initializeAuthStore } from "./server/auth/store.ts";
-import { requireAuth, requireCsrf } from "./server/auth/middleware.ts";
+import { requireAuth } from "./server/auth/middleware.ts";
 import { authorizeBusinessApi } from "./server/auth/authorization.ts";
 import { getCurrentActorEmail, requestContextMiddleware } from "./server/auth/requestContext.ts";
 
@@ -47,8 +46,6 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "10mb" }));
-app.use(createSessionMiddleware());
-app.use(requestContextMiddleware);
 
 app.use((req, res, next) => {
   const startTime = Date.now();
@@ -333,7 +330,12 @@ function createLog(
 }
 
 // All business APIs below this point require an authenticated, authorized session.
-app.use("/api", requireAuth, requireCsrf, authorizeBusinessApi);
+app.use(
+  "/api",
+  requireAuth,
+  authorizeBusinessApi,
+  requestContextMiddleware,
+);
 
 // Get all data
 app.get(["/api/data", "/api/db"], async (req, res) => {
@@ -1752,8 +1754,8 @@ async function startLocalServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 

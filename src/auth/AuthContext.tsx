@@ -9,8 +9,11 @@ import React, {
 
 import {
   apiFetch,
+  clearAccessToken,
+  getAccessToken,
   readApiError,
-  setCsrfToken,
+  replaceAccessToken,
+  setAccessToken,
 } from "../api/http";
 
 import type {
@@ -61,44 +64,36 @@ export function AuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [
-    user,
-    setUser,
-  ] = useState<AuthUser | null>(
-    null,
-  );
+  const [user, setUser] =
+    useState<AuthUser | null>(null);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [
-    initialized,
-    setInitialized,
-  ] = useState(true);
+  const [initialized, setInitialized] =
+    useState(true);
 
   const refreshSession =
     useCallback(async () => {
-      try {
-        const response =
-          await apiFetch(
-            "/api/auth/me",
-          );
+      if (!getAccessToken()) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-        if (
-          response.status === 401
-        ) {
+      try {
+        const response = await apiFetch(
+          "/api/auth/me",
+        );
+
+        if (response.status === 401) {
           setUser(null);
-          setCsrfToken(null);
           return;
         }
 
         if (!response.ok) {
           throw new Error(
-            await readApiError(
-              response,
-            ),
+            await readApiError(response),
           );
         }
 
@@ -106,11 +101,6 @@ export function AuthProvider({
           await response.json();
 
         setUser(body.user);
-
-        setCsrfToken(
-          body.csrfToken ||
-            null,
-        );
       } finally {
         setLoading(false);
       }
@@ -119,44 +109,41 @@ export function AuthProvider({
   useEffect(() => {
     let active = true;
 
-    const initialize =
-      async () => {
-        try {
-          const statusResponse =
-            await fetch(
-              "/api/auth/bootstrap-status",
-              {
-                credentials:
-                  "include",
-              },
-            );
+    const initialize = async () => {
+      try {
+        const statusResponse =
+          await fetch(
+            "/api/auth/bootstrap-status",
+            {
+              credentials:
+                "same-origin",
+            },
+          );
 
-          if (
-            statusResponse.ok
-          ) {
-            const status =
-              await statusResponse.json();
+        if (statusResponse.ok) {
+          const status =
+            await statusResponse.json();
 
-            if (active) {
-              setInitialized(
-                Boolean(
-                  status.initialized,
-                ),
-              );
-            }
-          }
-        } catch {
           if (active) {
-            setInitialized(true);
+            setInitialized(
+              Boolean(
+                status.initialized,
+              ),
+            );
           }
         }
-
+      } catch {
         if (active) {
-          await refreshSession();
+          setInitialized(true);
         }
-      };
+      }
 
-    initialize();
+      if (active) {
+        await refreshSession();
+      }
+    };
+
+    void initialize();
 
     return () => {
       active = false;
@@ -164,11 +151,10 @@ export function AuthProvider({
   }, [refreshSession]);
 
   useEffect(() => {
-    const handleUnauthorized =
-      () => {
-        setUser(null);
-        setCsrfToken(null);
-      };
+    const handleUnauthorized = () => {
+      clearAccessToken();
+      setUser(null);
+    };
 
     window.addEventListener(
       "auth:unauthorized",
@@ -182,115 +168,102 @@ export function AuthProvider({
       );
   }, []);
 
-  const login =
-    useCallback(
-      async (
-        input: LoginInput,
-      ) => {
-        const response =
-          await fetch(
-            "/api/auth/login",
+  const login = useCallback(
+    async (input: LoginInput) => {
+      const response = await fetch(
+        "/api/auth/login",
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(input),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response),
+        );
+      }
+
+      const body =
+        await response.json();
+
+      if (!body.accessToken) {
+        throw new Error(
+          "The server did not return an access token.",
+        );
+      }
+
+      setAccessToken(
+        body.accessToken,
+        input.rememberMe,
+      );
+
+      setUser(body.user);
+      setInitialized(true);
+    },
+    [],
+  );
+
+  const logout = useCallback(
+    async () => {
+      try {
+        if (getAccessToken()) {
+          await apiFetch(
+            "/api/auth/logout",
             {
               method: "POST",
-
-              credentials:
-                "include",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify(
-                  input,
-                ),
             },
           );
-
-        if (!response.ok) {
-          throw new Error(
-            await readApiError(
-              response,
-            ),
-          );
         }
-
-        const body =
-          await response.json();
-
-        setUser(body.user);
-
-        setCsrfToken(
-          body.csrfToken ||
-            null,
-        );
-
-        setInitialized(true);
-      },
-      [],
-    );
-
-  const logout =
-    useCallback(async () => {
-      try {
-        await apiFetch(
-          "/api/auth/logout",
-          {
-            method: "POST",
-          },
-        );
       } finally {
+        clearAccessToken();
         setUser(null);
-        setCsrfToken(null);
       }
-    }, []);
+    },
+    [],
+  );
 
   const changePassword =
     useCallback(
       async (
-        input:
-          ChangePasswordInput,
+        input: ChangePasswordInput,
       ) => {
-        const response =
-          await apiFetch(
-            "/api/auth/change-password",
-            {
-              method: "POST",
-
-              body:
-                JSON.stringify(
-                  input,
-                ),
-            },
-          );
+        const response = await apiFetch(
+          "/api/auth/change-password",
+          {
+            method: "POST",
+            body: JSON.stringify(input),
+          },
+        );
 
         if (!response.ok) {
           throw new Error(
-            await readApiError(
-              response,
-            ),
+            await readApiError(response),
           );
         }
 
         const body =
           await response.json();
 
-        setUser(body.user);
+        if (body.accessToken) {
+          replaceAccessToken(
+            body.accessToken,
+          );
+        }
 
-        setCsrfToken(
-          body.csrfToken ||
-            null,
-        );
+        setUser(body.user);
       },
       [],
     );
 
   const hasPermission =
     useCallback(
-      (
-        permission: string,
-      ) =>
+      (permission: string) =>
         Boolean(
           user?.permissions.includes(
             permission,
@@ -324,9 +297,7 @@ export function AuthProvider({
     );
 
   return (
-    <AuthContext.Provider
-      value={value}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

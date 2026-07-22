@@ -1,24 +1,20 @@
-import type { AuthUser } from "./types.ts";
+﻿import type {
+  AuthTokenPayload,
+} from "./token.ts";
 
-declare module "express-session" {
-  interface SessionData {
-    auth?: {
-      userId: string;
-      email: string;
-      role: string;
-      sessionVersion: number;
-    };
-
-    csrfToken?: string;
-  }
-}
+import type {
+  AuthUser,
+} from "./types.ts";
 
 declare global {
   namespace Express {
     interface Request {
       authUser?: AuthUser;
+      authToken?: AuthTokenPayload;
     }
   }
 }
 
 export {};
+
+
