@@ -347,9 +347,9 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
       thisMonthPublisherReturnsQty: publisherReturnsThisMonthQty,
       monthlySalesData: monthRows.map(({ key, ...row }) => row),
       bookBreakdownChartData: [
-        { name: "Available", value: availableBooks.length, color: "#2563eb" },
-        { name: "Low Stock", value: lowStockBooks.length, color: "#f59e0b" },
-        { name: "Out of Stock", value: outOfStockBooks.length, color: "#f43f5e" },
+        { name: "Available", value: availableBooks.length, color: "#d6a23f" },
+        { name: "Low Stock", value: lowStockBooks.length, color: "#f0c36a" },
+        { name: "Out of Stock", value: outOfStockBooks.length, color: "#d85b5b" },
       ],
       recentStockEntries: recentStock,
       recentSales: recentSaleRows,
@@ -378,24 +378,27 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
   };
 
   return (
-    <div id="dashboard-view" className="space-y-8 animate-fadeIn">
+   <div
+  id="dashboard-view"
+  className="professional-dual-dashboard w-full max-w-none space-y-8 animate-fadeIn"
+>
       {/* PREMIUM HEADER */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-blue-100/70 bg-white/75 p-6 shadow-xl shadow-blue-900/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60 sm:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(236,72,153,0.10),transparent_40%)]" />
+      <div className="dashboard-hero relative overflow-hidden rounded-[1.35rem] border p-6 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/96 sm:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(217,164,65,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(179,120,27,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(120,78,18,0.10),transparent_40%)]" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
-                <Sparkles className="h-3.5 w-3.5" /> Live Dashboard
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/35 bg-amber-400/10 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.18em] text-[#f0bd5a] dark:border-amber-500/25 dark:bg-amber-400/10 dark:text-[#f4d18a]">
+                <Sparkles className="h-3.5 w-3.5" /> Classical Dashboard
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Real saved records
               </span>
             </div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
-              Business Control Dashboard
+            <h1 className="font-serif text-3xl font-bold tracking-[0.02em] text-slate-950 dark:text-[#f6dda6] sm:text-4xl">
+              IVS Books Command Center
             </h1>
-            <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
+            <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-slate-600 dark:text-[#c8b894] sm:text-base">
               View real stock, sales, returns, publisher records, low-stock alerts, and monthly movement from your saved data.
             </p>
           </div>
@@ -412,7 +415,7 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
       {/* COMPACT PREMIUM AYAT-UL-KURSI FEATURE */}
       <section
         aria-labelledby="ayat-ul-kursi-title"
-        className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/85 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.09)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-[#0d1828] sm:p-5 lg:p-6"
+        className="dashboard-ayat relative overflow-hidden rounded-[1.35rem] border p-4 shadow-[0_18px_55px_rgba(15,23,42,0.09)] backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b] sm:p-5 lg:p-6"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_100%_100%,rgba(245,158,11,0.10),transparent_32%)] dark:bg-[radial-gradient(circle_at_0%_0%,rgba(59,130,246,0.16),transparent_34%),radial-gradient(circle_at_100%_100%,rgba(245,158,11,0.07),transparent_30%)]" />
         <div
@@ -427,19 +430,19 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
         />
 
         <div className="relative grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)] xl:items-stretch">
-          <div className="relative overflow-hidden rounded-[1.65rem] border border-blue-200/70 bg-gradient-to-br from-[#0f2b57] via-[#173b73] to-[#1d4f8c] px-5 py-6 text-white shadow-[0_16px_36px_rgba(30,64,175,0.22)] dark:border-blue-300/15 dark:from-[#10233f] dark:via-[#16315a] dark:to-[#1b4072] sm:px-6">
+          <div className="relative overflow-hidden rounded-[1.15rem] border border-amber-500/35/70 bg-gradient-to-br from-[#10243a] via-[#0d1f33] to-[#081522] px-5 py-6 text-white shadow-[0_16px_36px_rgba(30,64,175,0.22)] dark:border-blue-300/15 dark:from-[#10243a] dark:via-[#0d1f33] dark:to-[#081522] sm:px-6">
             <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full border border-white/10" />
             <div className="pointer-events-none absolute -bottom-16 -left-14 h-40 w-40 rounded-full bg-amber-300/10 blur-2xl" />
 
             <div className="relative flex h-full flex-col justify-between gap-5">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.24em] text-blue-50 backdrop-blur">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0d2136]/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.24em] text-blue-50 backdrop-blur">
                   <Sparkles className="h-3.5 w-3.5 text-amber-300" />
                   Daily Quranic Reminder
                 </div>
 
                 <div className="mt-5 flex items-center gap-4 xl:block">
-                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber-200/30 bg-white/10 shadow-inner backdrop-blur xl:h-16 xl:w-16">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-amber-500/30 bg-[#0d2136]/10 shadow-inner backdrop-blur xl:h-16 xl:w-16">
                     <BookOpen className="h-7 w-7 text-amber-200" />
                   </div>
 
@@ -466,7 +469,7 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
                 <span className="rounded-full border border-amber-200/25 bg-amber-300/10 px-3 py-1 text-[10px] font-extrabold text-amber-100">
                   سورۃ البقرۃ
                 </span>
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-extrabold text-blue-50">
+                <span className="rounded-full border border-white/15 bg-[#0d2136]/10 px-3 py-1 text-[10px] font-extrabold text-blue-50">
                   آیت 255
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-emerald-300/10 px-3 py-1 text-[10px] font-extrabold text-emerald-100">
@@ -477,21 +480,21 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
             </div>
           </div>
 
-          <div className="relative flex min-w-0 items-center overflow-hidden rounded-[1.65rem] border border-amber-200/80 bg-[#fffdf8] px-5 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-slate-600/70 dark:bg-[#18263a] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-7 sm:py-7 lg:px-9">
+          <div className="relative flex min-w-0 items-center overflow-hidden rounded-[1.15rem] border border-slate-200 bg-white dark:border-amber-500/25 dark:bg-[#0d2136] px-5 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-amber-500/20 dark:bg-[#0d2136] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-7 sm:py-7 lg:px-9">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(245,158,11,0.10),transparent_28%),radial-gradient(circle_at_88%_92%,rgba(37,99,235,0.08),transparent_30%)] dark:bg-[radial-gradient(circle_at_12%_8%,rgba(245,158,11,0.07),transparent_28%),radial-gradient(circle_at_88%_92%,rgba(59,130,246,0.14),transparent_32%)]" />
-            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/65 to-transparent dark:via-amber-300/35" />
-            <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent dark:via-blue-300/30" />
-            <span className="pointer-events-none absolute left-4 top-4 text-4xl font-serif text-amber-500/20 dark:text-amber-300/20">
+            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent dark:via-amber-300/35" />
+            <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-300/25 to-transparent dark:via-blue-300/30" />
+            <span className="pointer-events-none absolute left-4 top-4 text-4xl font-serif text-amber-300/20 dark:text-amber-300/20">
               ﴾
             </span>
-            <span className="pointer-events-none absolute bottom-4 right-4 text-4xl font-serif text-amber-500/20 dark:text-amber-300/20">
+            <span className="pointer-events-none absolute bottom-4 right-4 text-4xl font-serif text-amber-300/20 dark:text-amber-300/20">
               ﴿
             </span>
 
             <p
               dir="rtl"
               lang="ar"
-              className="relative mx-auto w-full text-center font-bold text-[#14213a] dark:text-[#f8fafc]"
+              className="w-full rounded-[2rem] w-full text-center font-bold text-[#f5e7c8] dark:text-[#f5e7c8]"
               style={{
                 fontFamily:
                   '"Noto Naskh Arabic", "Traditional Arabic", "Segoe UI", serif',
@@ -509,31 +512,31 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
       <button
         type="button"
         onClick={() => onNavigate("gradesets")}
-        className="group w-full overflow-hidden rounded-[2rem] border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-blue-50 p-6 text-left shadow-xl shadow-slate-900/[0.04] transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-2xl"
+        className="group w-full overflow-hidden rounded-[1.35rem] border border-rose-500/25 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-[#0d2136] dark:via-[#0a1a2b] dark:to-[#071421] p-6 text-left shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 transition-all hover:-translate-y-0.5 hover:border-amber-400/45 hover:shadow-2xl"
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="rounded-2xl border border-rose-100 bg-white p-4 text-rose-500 shadow-sm">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-rose-500/25 dark:bg-[#0d2136] p-4 text-[#d7a944] shadow-sm">
               <Layers className="h-7 w-7" />
             </div>
 
             <div>
-              <p className="text-[10px] font-mono font-extrabold uppercase tracking-[0.22em] text-rose-500">
+              <p className="text-[10px] font-mono font-extrabold uppercase tracking-[0.22em] text-[#d7a944]">
                 Grade Wise Set System
               </p>
 
-              <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-slate-950">
+              <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f5d99e]">
                 View Complete Book Sets by Grade
               </h2>
 
-              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-500">
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600 dark:text-[#9f8f70]">
                 Open the grade set page to see Grade 1 to Grade 10 cards, complete sets available,
                 limiting books, location-wise stock, and remaining books after sets.
               </p>
             </div>
           </div>
 
-          <div className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 px-5 py-3 text-xs font-extrabold text-white shadow-lg shadow-rose-500/20">
+          <div className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#9f6b1b] to-[#d6ad55] px-5 py-3 text-xs font-extrabold text-white shadow-lg shadow-amber-900/25">
             <Eye className="h-4 w-4" />
             Open Grade Sets
           </div>
@@ -634,17 +637,17 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
 
       {/* CHARTS */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-xl shadow-slate-900/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55 xl:col-span-2">
+        <div className="rounded-[1.35rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-6 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 xl:col-span-2">
           <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-white">
+              <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-[#f6dda6]">
                 Monthly Sales & Stock In
               </h3>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-medium text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">
                 Last six months calculated from saved sales and stock entries.
               </p>
             </div>
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
+            <span className="rounded-full border border-amber-500/35 bg-amber-400/10 px-3 py-1 text-xs font-extrabold text-[#f0bd5a] dark:border-amber-500/25 dark:bg-amber-400/10 dark:text-[#f4d18a]">
               Real data
             </span>
           </div>
@@ -657,28 +660,28 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    borderColor: "rgba(226,232,240,0.9)",
+                    backgroundColor: "rgba(8,21,34,0.98)",
+                    borderColor: "rgba(214,162,63,0.35)",
                     borderRadius: "18px",
-                    boxShadow: "0 20px 40px rgba(15,23,42,0.10)",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
                   }}
                 />
                 <Line
                   type="monotone"
                   dataKey="sales"
                   name="Sales Amount"
-                  stroke="#2563eb"
+                  stroke="#d6a23f"
                   strokeWidth={3}
-                  dot={{ r: 4, stroke: "#2563eb", strokeWidth: 2, fill: "#ffffff" }}
+                  dot={{ r: 4, stroke: "#d6a23f", strokeWidth: 2, fill: "#ffffff" }}
                   activeDot={{ r: 6 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="stockIn"
                   name="Stock Added"
-                  stroke="#a855f7"
+                  stroke="#8fb7ff"
                   strokeWidth={3}
-                  dot={{ r: 4, stroke: "#a855f7", strokeWidth: 2, fill: "#ffffff" }}
+                  dot={{ r: 4, stroke: "#8fb7ff", strokeWidth: 2, fill: "#ffffff" }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -686,12 +689,12 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-xl shadow-slate-900/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
+        <div className="rounded-[1.35rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-6 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/94">
           <div className="mb-3">
-            <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-white">
+            <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-[#f6dda6]">
               Book Stock Status
             </h3>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            <p className="text-sm font-medium text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">
               Available, low stock, and out-of-stock titles.
             </p>
           </div>
@@ -718,9 +721,9 @@ export default function DashboardView({ data, onNavigate, onTriggerAddStock }: D
           </div>
 
           <div className="grid grid-cols-1 gap-2">
-            <LegendItem color="bg-blue-600" label="Available" value={availableBooksList.length} />
+            <LegendItem color="bg-[#b77a19]" label="Available" value={availableBooksList.length} />
             <LegendItem color="bg-amber-500" label="Low Stock" value={lowStockBooksList.length} />
-            <LegendItem color="bg-rose-500" label="Out of Stock" value={outOfStockBooksList.length} />
+            <LegendItem color="bg-rose-500/100" label="Out of Stock" value={outOfStockBooksList.length} />
           </div>
         </div>
       </div>
@@ -793,7 +796,7 @@ function QuickAction({ label, icon: Icon, onClick }: { label: string; icon: Reac
   return (
     <button
       onClick={onClick}
-      className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs font-extrabold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+      className="group inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white/90 dark:border-amber-500/20 dark:bg-[#0d2136]/90 px-4 py-3 text-xs font-extrabold text-slate-700 dark:text-[#d8c49b] shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-500/35 hover:bg-amber-400/10 hover:text-[#f0bd5a] dark:border-amber-500/20 dark:bg-[#0d2136]/5 dark:text-[#e4d2ad] dark:hover:bg-amber-400/10 dark:hover:text-[#f4d18a]"
     >
       <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
       {label}
@@ -815,28 +818,28 @@ function StatCard({
   tone: "blue" | "emerald" | "indigo" | "purple";
 }) {
   const toneClasses = {
-    blue: "from-blue-600 to-cyan-500 text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-300",
+    blue: "from-[#b77a19] to-[#e0b85c] text-[#dca93f] bg-amber-400/10 border-amber-500/25 dark:bg-amber-400/10 dark:border-amber-500/25 dark:text-[#f1c66e]",
     emerald: "from-emerald-600 to-teal-500 text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-400/10 dark:border-emerald-400/20 dark:text-emerald-300",
-    indigo: "from-indigo-600 to-blue-500 text-indigo-600 bg-indigo-50 border-indigo-100 dark:bg-indigo-400/10 dark:border-indigo-400/20 dark:text-indigo-300",
-    purple: "from-fuchsia-600 to-purple-500 text-fuchsia-600 bg-fuchsia-50 border-fuchsia-100 dark:bg-fuchsia-400/10 dark:border-fuchsia-400/20 dark:text-fuchsia-300",
+    indigo: "from-[#9b6a1d] to-[#d7a944] text-[#dca93f] bg-amber-400/10 border-amber-500/25 dark:bg-indigo-400/10 dark:border-indigo-400/20 dark:text-indigo-300",
+    purple: "from-[#8f5a16] to-[#d5a23b] text-[#dca93f] bg-amber-400/10 border-amber-500/25 dark:bg-fuchsia-400/10 dark:border-fuchsia-400/20 dark:text-fuchsia-300",
   }[tone];
 
   return (
-    <div className="group relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/75 p-5 shadow-xl shadow-slate-900/[0.04] backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-white/10 dark:bg-slate-950/55">
+    <div className="group relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-5 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/94">
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${toneClasses.split(" ").slice(0, 2).join(" ")}`} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-[#8c7c5f] dark:text-slate-600 dark:text-[#9f8f70]">
             {title}
           </p>
-          <p className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+          <p className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f6dda6]">
             {value}
           </p>
-          <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">
             {helper}
           </p>
         </div>
-        <div className={`rounded-2xl border p-3 ${toneClasses}`}>
+        <div className={`rounded-lg border p-3 ${toneClasses}`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -848,14 +851,14 @@ function MiniMetric({ label, value, icon: Icon, onClick }: { label: string; valu
   return (
     <button
       onClick={onClick}
-      className="rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-4 text-left shadow-lg shadow-slate-900/[0.03] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 dark:border-white/10 dark:bg-slate-950/45 dark:hover:bg-blue-400/10"
+      className="rounded-[1.15rem] border border-slate-200/80 bg-white/82 dark:border-amber-500/20 dark:bg-[#0d2136]/88 p-4 text-left shadow-lg shadow-slate-900/[0.05] dark:shadow-black/15 backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-amber-500/35 hover:bg-amber-400/10 dark:border-amber-500/20 dark:bg-[#0d2136]/88 dark:hover:bg-amber-400/10"
     >
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">{label}</p>
-          <p className="mt-2 text-xl font-extrabold text-slate-950 dark:text-white">{value}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-[#8c7c5f] dark:text-slate-600 dark:text-[#9f8f70]">{label}</p>
+          <p className="mt-2 text-xl font-extrabold text-slate-950 dark:text-[#f6dda6]">{value}</p>
         </div>
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-3 text-blue-600 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300">
+        <div className="rounded-lg border border-amber-500/25 bg-amber-400/10 p-3 text-[#dca93f] dark:border-amber-500/25 dark:bg-amber-400/10 dark:text-[#f1c66e]">
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -877,33 +880,33 @@ function MovementCard({
   trend: "up" | "down" | "neutral";
 }) {
   const TrendIcon = trend === "down" ? ArrowDownRight : trend === "up" ? ArrowUpRight : RotateCcw;
-  const color = trend === "down" ? "text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-400/10 dark:border-rose-400/20 dark:text-rose-300" : trend === "up" ? "text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-400/10 dark:border-emerald-400/20 dark:text-emerald-300" : "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300";
+  const color = trend === "down" ? "text-rose-400 bg-rose-500/10 border-rose-500/25 dark:bg-rose-400/10 dark:border-rose-400/20 dark:text-rose-300" : trend === "up" ? "text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-400/10 dark:border-emerald-400/20 dark:text-emerald-300" : "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300";
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/75 p-5 shadow-lg shadow-slate-900/[0.03] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/50">
+    <div className="rounded-[1.15rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-5 shadow-lg shadow-slate-900/[0.05] dark:shadow-black/15 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/92">
       <div className="flex items-start justify-between">
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-3 text-blue-600 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300">
+        <div className="rounded-lg border border-amber-500/25 bg-amber-400/10 p-3 text-[#dca93f] dark:border-amber-500/25 dark:bg-amber-400/10 dark:text-[#f1c66e]">
           <Icon className="h-5 w-5" />
         </div>
         <div className={`rounded-full border px-2.5 py-1 ${color}`}>
           <TrendIcon className="h-4 w-4" />
         </div>
       </div>
-      <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">{title}</p>
-      <p className="mt-2 text-2xl font-extrabold text-slate-950 dark:text-white">{value}</p>
-      <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{helper}</p>
+      <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-[#8c7c5f] dark:text-slate-600 dark:text-[#9f8f70]">{title}</p>
+      <p className="mt-2 text-2xl font-extrabold text-slate-950 dark:text-[#f6dda6]">{value}</p>
+      <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">{helper}</p>
     </div>
   );
 }
 
 function LegendItem({ color, label, value }: { color: string; label: string; value: number }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-slate-50/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+    <div className="flex items-center justify-between rounded-lg border border-slate-200/75 bg-slate-50/85 dark:border-amber-500/20 dark:bg-[#0c1d30]/90 px-4 py-3 dark:border-amber-500/20 dark:bg-[#0d2136]/5">
       <div className="flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>
+        <span className="text-xs font-bold text-slate-600 dark:text-[#c8b894]">{label}</span>
       </div>
-      <span className="text-sm font-extrabold text-slate-950 dark:text-white">{value}</span>
+      <span className="text-sm font-extrabold text-slate-950 dark:text-[#f6dda6]">{value}</span>
     </div>
   );
 }
@@ -925,42 +928,42 @@ function AlertList({
   emptyText: string;
   onTriggerAddStock: (bookId: string) => void;
 }) {
-  const toneClass = tone === "rose" ? "text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-400/10 dark:border-rose-400/20 dark:text-rose-300" : "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300";
+  const toneClass = tone === "rose" ? "text-rose-400 bg-rose-500/10 border-rose-500/25 dark:bg-rose-400/10 dark:border-rose-400/20 dark:text-rose-300" : "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300";
 
   return (
-    <div className="rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-xl shadow-slate-900/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
-      <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200/70 pb-4 dark:border-white/10">
+    <div className="rounded-[1.35rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-6 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/94">
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-amber-500/18 pb-4 dark:border-amber-500/20">
         <div>
-          <h3 className="flex items-center gap-2 font-display text-lg font-extrabold text-slate-950 dark:text-white">
-            <AlertTriangle className={`h-5 w-5 ${tone === "rose" ? "text-rose-500" : "text-amber-500"}`} />
+          <h3 className="flex items-center gap-2 font-display text-lg font-extrabold text-slate-950 dark:text-[#f6dda6]">
+            <AlertTriangle className={`h-5 w-5 ${tone === "rose" ? "text-[#d7a944]" : "text-amber-500"}`} />
             {title}
           </h3>
-          <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">{description}</p>
+          <p className="mt-1 text-sm font-medium text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">{description}</p>
         </div>
         <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{books.length}</span>
       </div>
 
       <div className="max-h-[280px] space-y-3 overflow-y-auto pr-1">
         {books.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center text-sm font-semibold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+          <div className="rounded-xl border border-dashed border-amber-500/20 bg-[#0c1d30]/90 p-8 text-center text-sm font-semibold text-slate-600 dark:text-[#9f8f70] dark:border-amber-500/20 dark:bg-[#0d2136]/5 dark:text-slate-500 dark:text-[#8c7c5f]">
             {emptyText}
           </div>
         ) : (
           books.map((book) => {
             const stock = getBookTotalStock(book);
             return (
-              <div key={book.id} className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white/70 p-4 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50/50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-blue-400/10">
+              <div key={book.id} className="flex items-center justify-between gap-4 rounded-xl border border-slate-200/75 bg-white/82 dark:border-amber-500/20 dark:bg-[#0d2136]/88 p-4 shadow-sm transition-all hover:border-amber-500/35 hover:bg-amber-400/10/50 dark:border-amber-500/20 dark:bg-[#0d2136]/5 dark:hover:bg-amber-400/10">
                 <div className="min-w-0">
-                  <h4 className="truncate text-sm font-extrabold text-slate-900 dark:text-white">{book.title}</h4>
-                  <p className="mt-1 text-xs font-mono font-semibold text-slate-400 dark:text-slate-500">
+                  <h4 className="truncate text-sm font-extrabold text-[#f7e8c8] dark:text-slate-950 dark:text-[#f5d99e]">{book.title}</h4>
+                  <p className="mt-1 text-xs font-mono font-semibold text-slate-500 dark:text-[#8c7c5f] dark:text-slate-600 dark:text-[#9f8f70]">
                     Code: {book.book_number} • Reorder: {book.reorder_level}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className={`rounded-2xl border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{stock} left</span>
+                  <span className={`rounded-lg border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{stock} left</span>
                   <button
                     onClick={() => onTriggerAddStock(book.id)}
-                    className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-2 text-white shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
+                    className="rounded-lg bg-gradient-to-r from-[#b77a19] to-[#7f5311] p-2 text-white shadow-lg shadow-amber-900/25 transition-all hover:-translate-y-0.5"
                     title="Add Stock"
                   >
                     <Plus className="h-4 w-4" />
@@ -991,15 +994,15 @@ function RecentPanel({
   const hasChildren = React.Children.count(children) > 0;
 
   return (
-    <div className="rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-xl shadow-slate-900/[0.04] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
-      <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200/70 pb-4 dark:border-white/10">
+    <div className="rounded-[1.35rem] border border-slate-200/80 bg-white/88 dark:border-amber-500/20 dark:bg-[#0a1a2b]/94 p-6 shadow-xl shadow-slate-900/[0.06] dark:shadow-black/20 backdrop-blur-xl dark:border-amber-500/20 dark:bg-[#0a1a2b]/94">
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-amber-500/18 pb-4 dark:border-amber-500/20">
         <div>
-          <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-white">{title}</h3>
-          <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">Latest saved records</p>
+          <h3 className="font-display text-lg font-extrabold text-slate-950 dark:text-[#f6dda6]">{title}</h3>
+          <p className="mt-1 text-sm font-medium text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">Latest saved records</p>
         </div>
         <button
           onClick={onAction}
-          className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-extrabold text-blue-700 transition-all hover:bg-blue-100 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200"
+          className="rounded-lg border border-amber-500/35 bg-amber-400/10 px-4 py-2 text-xs font-extrabold text-[#f0bd5a] transition-all hover:bg-amber-400/15 dark:border-amber-500/25 dark:bg-amber-400/10 dark:text-[#f4d18a]"
         >
           {actionLabel}
         </button>
@@ -1009,7 +1012,7 @@ function RecentPanel({
         {hasChildren ? (
           children
         ) : (
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center text-sm font-semibold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+          <div className="rounded-xl border border-dashed border-amber-500/20 bg-[#0c1d30]/90 p-8 text-center text-sm font-semibold text-slate-600 dark:text-[#9f8f70] dark:border-amber-500/20 dark:bg-[#0d2136]/5 dark:text-slate-500 dark:text-[#8c7c5f]">
             {emptyText}
           </div>
         )}
@@ -1020,12 +1023,12 @@ function RecentPanel({
 
 function ActivityRow({ title, subtitle, value }: { title: string; subtitle: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200/75 bg-white/82 dark:border-amber-500/20 dark:bg-[#0d2136]/88 p-4 shadow-sm dark:border-amber-500/20 dark:bg-[#0d2136]/5">
       <div className="min-w-0">
-        <p className="truncate text-sm font-extrabold text-slate-900 dark:text-white">{title}</p>
-        <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
+        <p className="truncate text-sm font-extrabold text-[#f7e8c8] dark:text-slate-950 dark:text-[#f5d99e]">{title}</p>
+        <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-[#9f8f70] dark:text-slate-500 dark:text-[#8c7c5f]">{subtitle}</p>
       </div>
-      <span className="shrink-0 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-extrabold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+      <span className="shrink-0 rounded-lg border border-slate-200/75 bg-slate-50 dark:border-amber-500/20 dark:bg-[#0c1d30] px-3 py-1 text-xs font-extrabold text-slate-700 dark:text-[#d8c49b] dark:border-amber-500/20 dark:bg-[#0d2136]/5 dark:text-[#e4d2ad]">
         {value}
       </span>
     </div>

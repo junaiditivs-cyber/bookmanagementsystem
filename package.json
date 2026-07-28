@@ -5,14 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
-    "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "build:client": "vite build",
+    "build:server": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=build/server.cjs",
+    "build": "npm run validate && npm run build:client && npm run build:server",
+    "start": "node build/server.cjs",
+    "clean": "node -e \"const fs=require('fs'); for (const dir of ['dist','build']) fs.rmSync(dir,{recursive:true,force:true});\"",
     "db:generate": "drizzle-kit generate --config=src/db/drizzle.config.ts",
     "db:push": "drizzle-kit push --config=src/db/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=src/db/drizzle.config.ts",
-    "auth:create-admin": "tsx scripts/create-admin.ts"
+    "auth:create-admin": "tsx scripts/create-admin.ts",
+    "validate": "npm run lint && node scripts/validate-project.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

@@ -1,9 +1,7 @@
-import React, { useState, useMemo } from "react";
-import { DatabaseSchema, Book } from "../types";
+import React, { useMemo, useState } from "react";
+import { DatabaseSchema } from "../types";
 import { exportToPDF } from "../utils/pdfExport";
-import { 
-  Users, Search, Printer, Download, Eye, BookOpen, AlertCircle, Package, Layers, Sparkles 
-} from "lucide-react";
+import { Download, Printer, Search, Sparkles, Users } from "lucide-react";
 
 interface PublisherWiseStockViewProps {
   data: DatabaseSchema;
@@ -144,138 +142,162 @@ export default function PublisherWiseStockView({ data }: PublisherWiseStockViewP
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      
-      {/* TITLE CONTAINER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/50 pb-5 no-print">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-rose-500" />
-            <span>Publisher-wise Stock Explorer</span>
-          </h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            Analyze stock balances, evaluate liabilities, and run reorder projections segments by book publishers.
-          </p>
-        </div>
+    <div id="publisher-stock-view" className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100">
+      <style>{`
+        @media print {
+          #publisher-stock-view,
+          #publisher-stock-view * {
+            color: #000 !important;
+          }
 
-        <div className="flex gap-2 text-xs self-start sm:self-auto">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold transition-all cursor-pointer shadow-sm"
-          >
-            <Printer className="w-3.5 h-3.5 text-slate-400" />
-            <span>Print Ledger</span>
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3.5 py-2 btn-premium-pink text-white rounded-xl font-bold transition-all cursor-pointer shadow-sm"
-          >
-            <Download className="w-3.5 h-3.5 text-white/95" />
-            <span>Export Audit PDF</span>
-          </button>
-        </div>
-      </div>
+          #publisher-stock-view .publisher-stock-panel,
+          #publisher-stock-view table,
+          #publisher-stock-view thead,
+          #publisher-stock-view tbody,
+          #publisher-stock-view tr {
+            background: #fff !important;
+            box-shadow: none !important;
+          }
 
-      {/* FILTER PANEL */}
-      <div className="glass-panel border border-white/60 rounded-2xl p-5 space-y-4 no-print shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Publisher Account</label>
-            <select
-              value={selectedPublisher}
-              onChange={(e) => setSelectedPublisher(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 font-bold cursor-pointer focus:outline-none"
-            >
-              <option value="">-- All Publishers --</option>
-              {activePublishers.map(p => (
-                <option key={p.id} value={p.id}>{p.publisher_name}</option>
-              ))}
-            </select>
-          </div>
+          #publisher-stock-view th,
+          #publisher-stock-view td {
+            border-color: #cbd5e1 !important;
+          }
+        }
+      `}</style>
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Warehouse Location Node</label>
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 font-bold cursor-pointer focus:outline-none"
-            >
-              <option value="">-- All Locations --</option>
-              {data.locations.map(l => (
-                <option key={l.id} value={l.id}>{l.name} ({l.type.toUpperCase()})</option>
-              ))}
-            </select>
-          </div>
+      <section className="no-print relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.11),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_34%)]" />
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Keyword Search</label>
-            <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 shadow-sm">
-              <Search className="w-3.5 h-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search Title, Code or ISBN..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent text-slate-700 font-semibold focus:outline-none text-xs"
-              />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-800 shadow-[0_12px_28px_rgba(180,123,24,0.15)] dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-300">
+              <Users className="h-7 w-7" />
+            </div>
+
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-amber-800 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-200">
+                <Sparkles className="h-3.5 w-3.5" />
+                Publisher stock catalog
+              </span>
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Publisher-wise Stock Explorer
+              </h1>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Review stock quantities, purchase valuation, retail value, and reorder exposure across publishers.
+              </p>
             </div>
           </div>
 
+          <div className="flex flex-wrap items-center gap-2 self-start lg:self-center">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-xs font-extrabold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-100 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
+            >
+              <Printer className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+              Print Ledger
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPDF}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-4 py-3 text-xs font-extrabold text-slate-950 shadow-[0_14px_32px_rgba(180,123,24,0.24)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827]"
+            >
+              <Download className="h-4 w-4" />
+              Export Audit PDF
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div className="no-print rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <label className="block">
+            <span className="mb-2 block text-[10px] font-extrabold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+              Publisher Account
+            </span>
+            <select
+              value={selectedPublisher}
+              onChange={(event) => setSelectedPublisher(event.target.value)}
+              className="h-11 w-full rounded-2xl border border-slate-300 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white"
+            >
+              <option value="">All Publishers</option>
+              {activePublishers.map((publisher) => (
+                <option key={publisher.id} value={publisher.id}>
+                  {publisher.publisher_name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-[10px] font-extrabold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+              Warehouse Location
+            </span>
+            <select
+              value={selectedLocation}
+              onChange={(event) => setSelectedLocation(event.target.value)}
+              className="h-11 w-full rounded-2xl border border-slate-300 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white"
+            >
+              <option value="">All Locations</option>
+              {data.locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name} ({location.type.toUpperCase()})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-[10px] font-extrabold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+              Keyword Search
+            </span>
+            <div className="flex h-11 items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 dark:border-white/15 dark:bg-[#10263c]">
+              <Search className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-300" />
+              <input
+                type="text"
+                placeholder="Search title, code, or ISBN..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="w-full border-0 bg-transparent text-xs font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-white"
+              />
+            </div>
+          </label>
         </div>
       </div>
 
-      {/* METRIC CARD GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        
-        <div className="glass-card border border-slate-200/50 rounded-2xl p-4 shadow-sm">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">Matched Titles</p>
-          <p className="text-xl font-display font-bold text-slate-800 mt-1">{summaryMetrics.booksCount}</p>
-          <div className="text-[9px] text-slate-400 mt-1 font-medium">Under active publisher selection</div>
-        </div>
-
-        <div className="glass-card border border-slate-200/50 rounded-2xl p-4 shadow-sm">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">Stock Copies</p>
-          <p className="text-xl font-display font-bold text-rose-600 mt-1">{summaryMetrics.totalQty.toLocaleString()}</p>
-          <div className="text-[9px] text-slate-400 mt-1 font-medium">Physical stock units</div>
-        </div>
-
-        <div className="glass-card border border-slate-200/50 rounded-2xl p-4 shadow-sm">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">Under Threshold</p>
-          <p className="text-xl font-display font-bold text-amber-500 mt-1">{summaryMetrics.lowStockCount}</p>
-          <div className="text-[9px] text-slate-400 mt-1 font-medium">Syllabus reorder alerts</div>
-        </div>
-
-        <div className="glass-card border border-slate-200/50 rounded-2xl p-4 shadow-sm col-span-2 sm:col-span-1">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">Cost Value</p>
-          <p className="text-sm font-bold text-slate-800 mt-2 truncate">PKR {summaryMetrics.totalCostVal.toLocaleString()}</p>
-          <div className="text-[9px] text-slate-400 mt-1 font-medium">Based on purchase costs</div>
-        </div>
-
-        <div className="glass-card border border-slate-200/50 rounded-2xl p-4 shadow-sm col-span-2 sm:col-span-1">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">Retail Value</p>
-          <p className="text-sm font-bold text-slate-800 mt-2 truncate">PKR {summaryMetrics.totalSaleVal.toLocaleString()}</p>
-          <div className="text-[9px] text-slate-400 mt-1 font-medium">Expected revenue value</div>
-        </div>
-
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <SummaryMetric title="Matched Titles" value={summaryMetrics.booksCount.toLocaleString()} helper="Titles matching filters" />
+        <SummaryMetric title="Stock Copies" value={summaryMetrics.totalQty.toLocaleString()} helper="Physical stock units" />
+        <SummaryMetric title="Under Threshold" value={summaryMetrics.lowStockCount.toLocaleString()} helper="Reorder alerts" />
+        <SummaryMetric title="Cost Value" value={`PKR ${summaryMetrics.totalCostVal.toLocaleString()}`} helper="Purchase valuation" />
+        <SummaryMetric title="Retail Value" value={`PKR ${summaryMetrics.totalSaleVal.toLocaleString()}`} helper="Expected revenue" />
       </div>
 
-      {/* DETAIL STOCK TABLE */}
-      <div className="glass-panel rounded-2xl border border-white/60 overflow-hidden shadow-sm">
-        <div className="bg-white/80 px-5 py-4 border-b border-slate-100 flex items-center justify-between text-xs font-bold text-slate-800">
-          <span className="font-display font-bold text-slate-800 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-rose-500 animate-pulse" />
-            <span>Detailed Publisher Stock Ledger</span>
+      <div className="publisher-stock-panel overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#10263c]">
+        <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 font-display text-sm font-extrabold text-slate-900 dark:text-white">
+              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+              Detailed Publisher Stock Ledger
+            </h2>
+            <p className="mt-1 text-[10px] font-semibold text-slate-400">
+              Current quantities and valuation for the selected filters.
+            </p>
+          </div>
+          <span className="w-fit rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-[10px] font-extrabold text-slate-500 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300">
+            Showing {filteredBookStock.length} items
           </span>
-          <span className="text-slate-400 font-medium font-mono text-[10px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg">Showing {filteredBookStock.length} items</span>
         </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50/50 text-slate-500 uppercase text-[9px] font-mono border-b border-slate-100 font-bold">
+          <table className="min-w-[1050px] w-full text-left text-xs">
+            <thead className="border-b border-slate-100 bg-slate-50 text-[10px] font-mono uppercase text-slate-400 dark:border-white/10 dark:bg-[#10263c]">
               <tr>
                 <th className="px-5 py-3">Book Code</th>
                 <th className="px-5 py-3">Title Description</th>
-                <th className="px-5 py-3">Publisher Account</th>
+                <th className="px-5 py-3">Publisher</th>
                 <th className="px-5 py-3">Subject / Grade</th>
                 <th className="px-5 py-3 text-center">Current Stock</th>
                 <th className="px-5 py-3 text-center">Min Reorder</th>
@@ -283,41 +305,48 @@ export default function PublisherWiseStockView({ data }: PublisherWiseStockViewP
                 <th className="px-5 py-3 text-right">Potential Revenue</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+
+            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
               {filteredBookStock.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-400 font-mono font-medium">
-                    No books match the selected search and publisher filters.
+                  <td colSpan={8} className="px-5 py-14 text-center text-xs font-bold text-slate-400">
+                    No books match the selected publisher and search filters.
                   </td>
                 </tr>
               ) : (
-                filteredBookStock.map(item => (
-                  <tr key={item.book.id} className="hover:bg-white/40 transition-colors">
-                    <td className="px-5 py-4 font-mono font-bold text-slate-400 text-[10px]">{item.book.book_number}</td>
-                    <td className="px-5 py-4">
-                      <div>
-                        <p className="font-bold text-slate-800">{item.book.title}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{item.book.ISBN ? `ISBN: ${item.book.ISBN}` : ""}</p>
-                      </div>
+                filteredBookStock.map((item) => (
+                  <tr key={item.book.id} className="transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
+                    <td className="px-5 py-4 font-mono text-[10px] font-extrabold text-slate-400">
+                      {item.book.book_number}
                     </td>
-                    <td className="px-5 py-4 text-slate-500 font-semibold">{item.publisherName}</td>
-                    <td className="px-5 py-4 text-slate-600 font-bold">{item.className} - {item.subjectName}</td>
+                    <td className="px-5 py-4">
+                      <p className="font-extrabold text-slate-800 dark:text-slate-100">{item.book.title}</p>
+                      <p className="mt-0.5 text-[10px] font-semibold text-slate-400">
+                        {item.book.ISBN ? `ISBN: ${item.book.ISBN}` : "No ISBN"}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4 font-bold text-slate-600 dark:text-slate-300">{item.publisherName}</td>
+                    <td className="px-5 py-4 font-bold text-slate-600 dark:text-slate-300">
+                      {item.className} - {item.subjectName}
+                    </td>
                     <td className="px-5 py-4 text-center">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${
-                        item.needsReorder 
-                          ? "bg-rose-50 text-rose-600 border border-rose-100" 
-                          : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                      }`}>
+                      <span
+                        className={`inline-flex rounded-lg border px-2.5 py-1 text-[10px] font-extrabold ${
+                          item.needsReorder
+                            ? "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/10 dark:text-rose-200"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200"
+                        }`}
+                      >
                         {item.qty} units
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-center font-mono text-slate-400 font-bold">
+                    <td className="px-5 py-4 text-center font-mono font-bold text-slate-400">
                       {item.book.reorder_level} units
                     </td>
-                    <td className="px-5 py-4 text-right font-mono font-extrabold text-slate-800">
+                    <td className="px-5 py-4 text-right font-mono font-extrabold text-slate-800 dark:text-slate-100">
                       PKR {item.valueCost.toLocaleString()}
                     </td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-500 font-semibold">
+                    <td className="px-5 py-4 text-right font-mono font-bold text-slate-500 dark:text-slate-300">
                       PKR {item.valueSale.toLocaleString()}
                     </td>
                   </tr>
@@ -327,7 +356,26 @@ export default function PublisherWiseStockView({ data }: PublisherWiseStockViewP
           </table>
         </div>
       </div>
+    </div>
+  );
+}
 
+function SummaryMetric({
+  title,
+  value,
+  helper,
+}: {
+  title: string;
+  value: string;
+  helper: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+      <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">{title}</p>
+      <p className="mt-2 truncate font-mono text-lg font-extrabold text-slate-900 dark:text-white" title={value}>
+        {value}
+      </p>
+      <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">{helper}</p>
     </div>
   );
 }

@@ -1,8 +1,16 @@
-import React, { useMemo, useState } from "react";
-import { 
-  FileText, Search, Printer, Download, Calendar, Filter, Users, BookOpen, Building2, Layers, Bookmark, Tags
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  BookOpen,
+  Calendar,
+  Database,
+  Download,
+  FileText,
+  Filter,
+  Printer,
+  Search,
+  type LucideIcon,
 } from "lucide-react";
-import { DatabaseSchema, Book } from "../types";
+import { DatabaseSchema } from "../types";
 import { exportToPDF } from "../utils/pdfExport";
 
 interface ReportsViewProps {
@@ -20,8 +28,9 @@ type ReportRow = {
   col8: string;
 };
 
+const MAX_RENDERED_ROWS = 150;
+
 export default function ReportsView({ data }: ReportsViewProps) {
-    const MAX_RENDERED_ROWS = 150;
   const [selectedReportId, setSelectedReportId] = useState("1");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -518,9 +527,9 @@ export default function ReportsView({ data }: ReportsViewProps) {
   const handleExportPDF = () => {
     const reportName = reports.find(r => r.id === selectedReportId)?.name || "Report";
     const cols = headers.map((header, idx) => ({
-  header,
-  dataKey: `col${idx + 1}` as keyof ReportRow,
-}));
+      header,
+      dataKey: `col${idx + 1}` as keyof ReportRow,
+    }));
     // Filter out empty headers
     const validCols = cols.filter(col => col.header.trim() !== "");
 
@@ -544,205 +553,660 @@ export default function ReportsView({ data }: ReportsViewProps) {
     });
   };
 
+  const selectedReport =
+    reports.find((report) => report.id === selectedReportId) ||
+    reports[0];
+
+  const activeFilterCount = [
+    startDate,
+    endDate,
+    searchQuery.trim(),
+    filterPublisher,
+    filterBook,
+    filterLocation,
+  ].filter(Boolean).length;
+
   return (
-    <div id="reports-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800">
-      
-      {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5 no-print">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-rose-500" />
-            <span>Reports & Registers Portal</span>
-          </h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            Generate, print, and export 16 distinct business ledgers and stock catalogs in real-time.
-          </p>
-        </div>
+    <div
+      id="reports-view"
+      className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100"
+    >
+      <style>{`
+        #reports-view .reports-readable {
+          color: #0f172a !important;
+        }
 
-        <div className="flex gap-2 text-xs font-bold">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-sm"
-          >
-            <Printer className="w-3.5 h-3.5 text-rose-500" />
-            <span>Print Current Report</span>
-          </button>
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-sm"
-          >
-            <Download className="w-3.5 h-3.5 text-rose-500" />
-            <span>Export CSV Sheet</span>
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-sm"
-          >
-            <FileText className="w-3.5 h-3.5 text-rose-500" />
-            <span>Export PDF Report</span>
-          </button>
-        </div>
-      </div>
+        #reports-view .reports-muted {
+          color: #475569 !important;
+        }
 
-      {/* FILTER CONTROL HUB */}
-      <div className="glass-panel border border-white/60 rounded-2xl p-5 space-y-4 no-print shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Select Report Type</label>
-            <select
-              value={selectedReportId}
-              onChange={(e) => setSelectedReportId(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none cursor-pointer"
+        #reports-view .reports-panel {
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 20px 55px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        #reports-view .reports-soft-panel {
+          background-color: #f8fafc !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        #reports-view .reports-control {
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+
+        #reports-view .reports-control::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
+        }
+
+        #reports-view table {
+          color: #334155 !important;
+        }
+
+        #reports-view thead {
+          background-color: #f1f5f9 !important;
+          color: #475569 !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        #reports-view tbody {
+          background-color: #ffffff !important;
+        }
+
+        #reports-view tbody tr {
+          background-color: #ffffff !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        #reports-view tbody tr:hover {
+          background-color: #fffbeb !important;
+        }
+
+        #reports-view td,
+        #reports-view th {
+          border-color: #e2e8f0 !important;
+        }
+
+        html.dark #reports-view .reports-readable {
+          color: #f8fafc !important;
+        }
+
+        html.dark #reports-view .reports-muted {
+          color: #cbd5e1 !important;
+        }
+
+        html.dark #reports-view .reports-panel {
+          background-color: #081827 !important;
+          border-color: rgba(252, 211, 77, 0.22) !important;
+          box-shadow: 0 26px 78px rgba(0, 0, 0, 0.44) !important;
+        }
+
+        html.dark #reports-view .reports-soft-panel {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #reports-view .reports-control {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.16) !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #reports-view .reports-control::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+        }
+
+        html.dark #reports-view option {
+          background-color: #0f2236 !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #reports-view table {
+          color: #e2e8f0 !important;
+        }
+
+        html.dark #reports-view thead {
+          background-color: #10263c !important;
+          color: #cbd5e1 !important;
+          border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        html.dark #reports-view tbody {
+          background-color: #081827 !important;
+        }
+
+        html.dark #reports-view tbody tr {
+          background-color: #081827 !important;
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #reports-view tbody tr:hover {
+          background-color: #10263c !important;
+        }
+
+        html.dark #reports-view td,
+        html.dark #reports-view th {
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        @media print {
+          #reports-view {
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+
+          #reports-view .no-print {
+            display: none !important;
+          }
+
+          #reports-view .reports-panel,
+          #reports-view .reports-soft-panel,
+          #reports-view table,
+          #reports-view thead,
+          #reports-view tbody,
+          #reports-view tbody tr {
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+          }
+
+          #reports-view td,
+          #reports-view th,
+          #reports-view p,
+          #reports-view span,
+          #reports-view h1,
+          #reports-view h2,
+          #reports-view h3 {
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+          }
+
+          #reports-view .report-output {
+            border: 0 !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
+
+      <section
+        className="
+          relative overflow-hidden rounded-[2rem]
+          border border-amber-300 bg-white px-6 py-6
+          shadow-[0_20px_60px_rgba(15,23,42,0.12)]
+          dark:border-amber-300/20 dark:bg-[#081827]
+          dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)]
+          sm:px-8 sm:py-7 no-print
+        "
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.09),transparent_35%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.13),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_35%)]" />
+
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div
+              className="
+                grid h-14 w-14 shrink-0 place-items-center
+                rounded-2xl border border-amber-300
+                bg-amber-50 text-amber-800
+                shadow-[0_12px_28px_rgba(180,123,24,0.16)]
+                dark:border-amber-300/25
+                dark:bg-amber-300/10 dark:text-amber-300
+              "
             >
-              {reports.map(r => (
-                <option key={r.id} value={r.id}>{r.id}. {r.name}</option>
-              ))}
-            </select>
-          </div>
+              <FileText className="h-7 w-7" />
+            </div>
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 focus:outline-none"
-            />
-          </div>
+            <div>
+              <div
+                className="
+                  inline-flex items-center gap-2 rounded-full
+                  border border-amber-300 bg-amber-50 px-3 py-1
+                  text-[9px] font-black uppercase
+                  tracking-[0.22em] text-amber-800
+                  dark:border-amber-300/25
+                  dark:bg-amber-300/10 dark:text-amber-200
+                "
+              >
+                <Database className="h-3.5 w-3.5" />
+                16 live business reports
+              </div>
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 focus:outline-none"
-            />
-          </div>
+              <h1 className="reports-readable mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Reports &amp; Registers Portal
+              </h1>
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Search Query</label>
-            <div className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-xl border border-slate-200">
-              <Search className="w-3.5 h-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Title, code..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-0 text-slate-700 font-semibold focus:ring-0 focus:outline-none w-full text-xs"
-              />
+              <p className="reports-muted mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Generate, search, print, and export complete stock,
+                sales, return, transfer, valuation, and audit
+                registers from live system records.
+              </p>
             </div>
           </div>
 
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="
+                inline-flex items-center justify-center gap-2
+                rounded-2xl border border-slate-300
+                bg-white px-4 py-3 text-xs font-extrabold
+                text-slate-800 shadow-sm transition
+                hover:-translate-y-0.5 hover:border-amber-300
+                hover:bg-amber-50 hover:text-amber-900
+                dark:border-white/15 dark:bg-[#10263c]
+                dark:text-slate-100
+                dark:hover:border-amber-300/30
+                dark:hover:bg-amber-300/10
+                dark:hover:text-amber-200
+              "
+            >
+              <Printer className="h-4 w-4" />
+              Print Current Report
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="
+                inline-flex items-center justify-center gap-2
+                rounded-2xl border border-slate-300
+                bg-white px-4 py-3 text-xs font-extrabold
+                text-slate-800 shadow-sm transition
+                hover:-translate-y-0.5 hover:border-emerald-300
+                hover:bg-emerald-50 hover:text-emerald-800
+                dark:border-white/15 dark:bg-[#10263c]
+                dark:text-slate-100
+                dark:hover:border-emerald-400/30
+                dark:hover:bg-emerald-400/10
+                dark:hover:text-emerald-200
+              "
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPDF}
+              className="
+                inline-flex items-center justify-center gap-2
+                rounded-2xl border border-amber-400
+                bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)]
+                px-4 py-3 text-xs font-extrabold
+                text-slate-950
+                shadow-[0_12px_28px_rgba(180,123,24,0.22)]
+                transition hover:-translate-y-0.5
+                hover:brightness-105
+                dark:border-amber-300/40
+                dark:text-[#081827]
+              "
+            >
+              <FileText className="h-4 w-4" />
+              Export Full PDF
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="
+          reports-panel space-y-5 rounded-[2rem]
+          border border-slate-300 bg-white p-5
+          shadow-[0_20px_55px_rgba(15,23,42,0.12)]
+          dark:border-amber-300/20 dark:bg-[#081827]
+          no-print sm:p-6
+        "
+      >
+        <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-white/10">
+          <div
+            className="
+              grid h-10 w-10 place-items-center rounded-2xl
+              border border-amber-300 bg-amber-50
+              text-amber-800 dark:border-amber-300/25
+              dark:bg-amber-300/10 dark:text-amber-300
+            "
+          >
+            <Filter className="h-5 w-5" />
+          </div>
+
+          <div>
+            <h2 className="reports-readable text-sm font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+              Report Filters
+            </h2>
+
+            <p className="reports-muted text-xs font-semibold text-slate-600 dark:text-slate-400">
+              Select the report and narrow the live record set.
+            </p>
+          </div>
         </div>
 
-        {/* CONDITIONAL ADVANCED FILTERS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-3 border-t border-slate-100">
-          
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Filter Publisher</label>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ReportField label="Select Report Type" icon={FileText}>
+            <select
+              value={selectedReportId}
+              onChange={(event) =>
+                setSelectedReportId(event.target.value)
+              }
+              className="reports-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
+            >
+              {reports.map((report) => (
+                <option key={report.id} value={report.id}>
+                  {report.id}. {report.name}
+                </option>
+              ))}
+            </select>
+          </ReportField>
+
+          <ReportField label="Start Date" icon={Calendar}>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(event) =>
+                setStartDate(event.target.value)
+              }
+              className="reports-control h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:[color-scheme:dark]"
+            />
+          </ReportField>
+
+          <ReportField label="End Date" icon={Calendar}>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(event) =>
+                setEndDate(event.target.value)
+              }
+              className="reports-control h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:[color-scheme:dark]"
+            />
+          </ReportField>
+
+          <ReportField label="Search Query" icon={Search}>
+            <div className="reports-control flex h-12 items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 shadow-sm dark:border-white/15 dark:bg-[#10263c]">
+              <Search className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+
+              <input
+                type="text"
+                placeholder="Title, code, reference..."
+                value={searchQuery}
+                onChange={(event) =>
+                  setSearchQuery(event.target.value)
+                }
+                className="w-full border-0 bg-transparent text-sm font-bold text-slate-950 outline-none placeholder:text-slate-500 focus:ring-0 dark:text-white dark:placeholder:text-slate-400"
+              />
+            </div>
+          </ReportField>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-5 dark:border-white/10 md:grid-cols-3">
+          <ReportField label="Filter Publisher" icon={Database}>
             <select
               value={filterPublisher}
-              onChange={(e) => setFilterPublisher(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 focus:outline-none cursor-pointer"
+              onChange={(event) =>
+                setFilterPublisher(event.target.value)
+              }
+              className="reports-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Publishers --</option>
-              {data.publishers.map(p => (
-                <option key={p.id} value={p.id}>{p.publisher_name}</option>
+
+              {data.publishers.map((publisher) => (
+                <option
+                  key={publisher.id}
+                  value={publisher.id}
+                >
+                  {publisher.publisher_name}
+                </option>
               ))}
             </select>
-          </div>
+          </ReportField>
 
-          <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Filter Specific Book</label>
+          <ReportField label="Filter Specific Book" icon={BookOpen}>
             <select
               value={filterBook}
-              onChange={(e) => setFilterBook(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 focus:outline-none cursor-pointer"
+              onChange={(event) =>
+                setFilterBook(event.target.value)
+              }
+              className="reports-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Books --</option>
-              {data.books.map(b => (
-                <option key={b.id} value={b.id}>{b.title} ({b.book_number})</option>
+
+              {data.books.map((book) => (
+                <option key={book.id} value={book.id}>
+                  {book.title} ({book.book_number})
+                </option>
               ))}
             </select>
+          </ReportField>
+
+          <ReportField label="Filter Storage Node" icon={Database}>
+            <select
+              value={filterLocation}
+              onChange={(event) =>
+                setFilterLocation(event.target.value)
+              }
+              className="reports-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
+            >
+              <option value="">-- All Locations --</option>
+
+              {data.locations.map((location) => (
+                <option
+                  key={location.id}
+                  value={location.id}
+                >
+                  {location.name} ({location.code})
+                </option>
+              ))}
+            </select>
+          </ReportField>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 no-print">
+        <ReportMetric
+          label="Selected Report"
+          value={`#${selectedReport.id}`}
+        />
+
+        <ReportMetric
+          label="Matched Rows"
+          value={rows.length.toLocaleString()}
+        />
+
+        <ReportMetric
+          label="Active Filters"
+          value={activeFilterCount.toLocaleString()}
+        />
+
+        <ReportMetric
+          label="PDF Export"
+          value="Full Records"
+        />
+      </div>
+
+      <section
+        className="
+          reports-soft-panel flex flex-col gap-4
+          rounded-[2rem] border border-slate-200
+          bg-slate-50 p-5 dark:border-white/10
+          dark:bg-[#10263c] sm:flex-row
+          sm:items-center sm:justify-between
+        "
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="
+              grid h-11 w-11 shrink-0 place-items-center
+              rounded-2xl border border-amber-300
+              bg-white text-amber-800 shadow-sm
+              dark:border-amber-300/25
+              dark:bg-amber-300/10 dark:text-amber-300
+            "
+          >
+            <BookOpen className="h-5 w-5" />
           </div>
 
           <div>
-            <label className="block text-slate-500 font-bold mb-1.5">Filter Storage Node</label>
-            <select
-              value={filterLocation}
-              onChange={(e) => setFilterLocation(e.target.value)}
-              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 focus:outline-none cursor-pointer"
-            >
-              <option value="">-- All Locations --</option>
-              {data.locations.map(l => (
-                <option key={l.id} value={l.id}>{l.name} ({l.code})</option>
-              ))}
-            </select>
+            <h3 className="reports-readable text-sm font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+              {selectedReport.name}
+            </h3>
+
+            <p className="reports-muted mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">
+              {selectedReport.desc}
+            </p>
           </div>
-
         </div>
-      </div>
 
-      {/* PRINT BANNER DESCRIPTION */}
-      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
-        <div className="p-2.5 bg-white rounded-xl text-rose-500 border border-slate-200/60 shadow-sm">
-          <FileText className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="text-slate-800 font-bold text-xs">
-            {reports.find(r => r.id === selectedReportId)?.name}
-          </h3>
-          <p className="text-slate-400 text-[10px] mt-0.5 font-bold">
-            {reports.find(r => r.id === selectedReportId)?.desc}
+        <div className="reports-panel rounded-2xl border border-slate-300 bg-white px-4 py-3 text-right dark:border-white/15 dark:bg-[#081827]">
+          <p className="reports-muted text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">
+            Date Coverage
+          </p>
+
+          <p className="reports-readable mt-1 font-mono text-xs font-extrabold text-slate-950 dark:text-white">
+            {startDate || "All dates"} → {endDate || "All dates"}
           </p>
         </div>
-      </div>
+      </section>
 
-            {rows.length > MAX_RENDERED_ROWS && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 no-print">
-          Showing first {MAX_RENDERED_ROWS} rows on screen for better speed. Export CSV/PDF still includes all {rows.length} rows.
+      {rows.length > MAX_RENDERED_ROWS && (
+        <div
+          className="
+            rounded-2xl border border-amber-200
+            bg-amber-50 px-5 py-4 text-xs
+            font-bold leading-5 text-amber-800
+            dark:border-amber-400/20
+            dark:bg-amber-400/10
+            dark:text-amber-200 no-print
+          "
+        >
+          Screen performance ke liye pehli{" "}
+          {MAX_RENDERED_ROWS} rows show ho rahi hain. CSV aur PDF
+          export mein tamam {rows.length.toLocaleString()} filtered
+          rows include hongi.
         </div>
       )}
 
-      {/* REPORT OUTPUT GRID */}
-      <div className="glass-panel border border-white/60 rounded-2xl overflow-hidden print:bg-white print:border-none print:text-black shadow-sm">
+      <section
+        className="
+          reports-panel report-output overflow-hidden
+          rounded-[2rem] border border-slate-300
+          bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)]
+          dark:border-amber-300/20 dark:bg-[#081827]
+          print:border-0 print:bg-white print:shadow-none
+        "
+      >
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700 print:text-black">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider font-bold border-b border-slate-100 print:bg-slate-100 print:text-black">
+          <table className="w-full min-w-[1180px] text-left text-xs text-slate-700 dark:text-slate-200 print:min-w-0 print:text-black">
+            <thead className="border-b border-slate-200 bg-slate-100 text-[9px] font-extrabold uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300 print:bg-slate-100 print:text-black">
               <tr>
-                {headers.map((hdr, hIdx) => (
-                  <th key={hIdx} className="px-5 py-3.5">{hdr}</th>
+                {headers.map((header, headerIndex) => (
+                  <th
+                    key={headerIndex}
+                    className="whitespace-nowrap px-5 py-4"
+                  >
+                    {header}
+                  </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 print:divide-slate-200 bg-white/40">
+
+            <tbody className="divide-y divide-slate-200 bg-white dark:divide-white/10 dark:bg-[#081827] print:divide-slate-200">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-400 font-mono">
-                    No rows returned under these criteria. Try changing filters or shifting parameters.
+                  <td
+                    colSpan={8}
+                    className="reports-muted py-14 text-center font-mono font-semibold text-slate-600 dark:text-slate-400"
+                  >
+                    No rows returned under these criteria. Change
+                    the filters or select another report.
                   </td>
                 </tr>
               ) : (
-                                visibleRows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-white/40">
-                    <td className="px-5 py-3.5 font-bold text-[11px] text-slate-400">{row.col1}</td>
-                    <td className="px-5 py-3.5 text-slate-800 print:text-black font-extrabold">{row.col2}</td>
-                    <td className="px-5 py-3.5 text-slate-600 font-bold">{row.col3}</td>
-                    <td className="px-5 py-3.5 text-slate-500 font-medium">{row.col4}</td>
-                    <td className="px-5 py-3.5 text-slate-700 font-mono font-bold">{row.col5}</td>
-                    <td className="px-5 py-3.5 text-slate-700 font-mono font-bold">{row.col6}</td>
-                    <td className="px-5 py-3.5 text-slate-700 font-mono font-bold">{row.col7}</td>
-                    <td className="px-5 py-3.5 text-slate-400 font-mono text-[10px] font-bold">{row.col8}</td>
+                visibleRows.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className="bg-white transition-colors hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c]"
+                  >
+                    <td className="reports-muted whitespace-nowrap px-5 py-4 font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                      {row.col1}
+                    </td>
+
+                    <td className="reports-readable px-5 py-4 font-extrabold text-slate-950 dark:text-white print:text-black">
+                      {row.col2}
+                    </td>
+
+                    <td className="reports-readable px-5 py-4 font-bold text-slate-800 dark:text-slate-100">
+                      {row.col3}
+                    </td>
+
+                    <td className="reports-muted px-5 py-4 font-semibold text-slate-600 dark:text-slate-300">
+                      {row.col4}
+                    </td>
+
+                    <td className="reports-readable whitespace-nowrap px-5 py-4 font-mono font-extrabold text-slate-900 dark:text-white">
+                      {row.col5}
+                    </td>
+
+                    <td className="reports-readable whitespace-nowrap px-5 py-4 font-mono font-extrabold text-slate-900 dark:text-white">
+                      {row.col6}
+                    </td>
+
+                    <td className="reports-readable whitespace-nowrap px-5 py-4 font-mono font-extrabold text-slate-900 dark:text-white">
+                      {row.col7}
+                    </td>
+
+                    <td className="reports-muted px-5 py-4 font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                      {row.col8}
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
+    </div>
+  );
+}
 
+function ReportField({
+  label,
+  icon: Icon,
+  children,
+}: {
+  label: string;
+  icon: LucideIcon;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <label className="reports-readable mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-slate-100">
+        <Icon className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+        <span>{label}</span>
+      </label>
+
+      {children}
+    </div>
+  );
+}
+
+function ReportMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="reports-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+      <p className="reports-muted text-[9px] font-extrabold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-400">
+        {label}
+      </p>
+
+      <p className="reports-readable mt-2 break-words font-mono text-xl font-extrabold text-slate-950 dark:text-white">
+        {value}
+      </p>
     </div>
   );
 }

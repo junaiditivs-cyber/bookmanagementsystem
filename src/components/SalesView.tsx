@@ -294,13 +294,29 @@ export default function SalesView({
     setLoading(true);
 
     try {
-      for (const row of selectedGradeSetRows) {
-        await postSingleSaleToServer({
-          targetBookId: row.book.id,
-          targetQuantity: Number(gradeSetQuantity),
-          targetSalePrice: row.salePrice,
+      const response = await apiFetch("/api/sales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date,
+          location_id: locationId,
+          customer_name: "",
+          discount: 0,
+          payment_method: "Cash",
           notes: `Grade set sale - ${selectedGrade.name}`,
-        });
+          items: selectedGradeSetRows.map((row) => ({
+            book_id: row.book.id,
+            quantity: Number(gradeSetQuantity),
+            sale_price: row.salePrice,
+          })),
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || "Failed to record grade set sale.");
       }
 
       onShowNotification(`${selectedGrade.name} set sale recorded successfully.`, "success");

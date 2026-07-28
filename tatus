@@ -1,0 +1,35 @@
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/AddStockView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/DamageLossView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/DashboardView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/MonthlyRecordsView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/PublisherWiseStockView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/QuickSetupView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ReportsView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ReturnsView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/SalesView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/SettingsView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/SubjectWiseStockView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/TransfersView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/index.css', LF will be replaced by CRLF the next time Git touches it
+ api/index.js                              | 3348 [31m-----------------------------[m
+ package.json                              |   13 [32m+[m[31m-[m
+ server.ts                                 | 1866 [32m++++++++++[m[31m------[m
+ src/App.tsx                               |  414 [32m++[m[31m--[m
+ src/components/AddStockView.tsx           |  917 [32m+++++[m[31m---[m
+ src/components/DamageLossView.tsx         |  652 [32m+++++[m[31m-[m
+ src/components/DashboardView.tsx          |  179 [32m+[m[31m-[m
+ src/components/LoginView.tsx              |  454 [32m+++[m[31m-[m
+ src/components/MonthlyRecordsView.tsx     |  290 [32m++[m[31m-[m
+ src/components/PublisherWiseStockView.tsx |  302 [32m+[m[31m--[m
+ src/components/QuickSetupView.tsx         |  507 [32m+++[m[31m--[m
+ src/components/ReportsView.tsx            |  726 [32m+++++[m[31m--[m
+ src/components/ReturnsView.tsx            | 1119 [32m+++++++[m[31m---[m
+ src/components/SalesView.tsx              |   30 [32m+[m[31m-[m
+ src/components/SettingsView.tsx           |  779 [32m+++++[m[31m--[m
+ src/components/SubjectWiseStockView.tsx   |  379 [32m++[m[31m--[m
+ src/components/TransfersView.tsx          |  289 [32m++[m[31m-[m
+ src/index.css                             | 2138 [32m++++++++++++++++[m[31m--[m
+ 18 files changed, 8535 insertions(+), 5867 deletions(-)

@@ -11,9 +11,109 @@ import {
   Layers,
   Users,
   FileText,
+  ReceiptText,
+  ShieldCheck,
+  Landmark,
 } from "lucide-react";
 import { DatabaseSchema } from "../types";
 import { apiFetch } from "../api/http";
+
+const ADD_STOCK_VIEW_THEME_GUARD = `
+html.dark #add-stock-view {
+  color: #e8eef7 !important;
+}
+html.dark #add-stock-view [class*="text-slate-"] {
+  color: #d9e4ef !important;
+}
+html.dark #add-stock-view [class*="dark:text-white"] {
+  color: #ffffff !important;
+}
+html.dark #add-stock-view [class*="dark:text-[#f7ddb0]"] {
+  color: #f7ddb0 !important;
+}
+html.dark #add-stock-view [class*="dark:text-[#081827]"] {
+  color: #081827 !important;
+}
+html.dark #add-stock-view [class*="dark:text-amber-"] {
+  color: #f4d88a !important;
+}
+html.dark #add-stock-view [class*="dark:text-blue-"] {
+  color: #bfdbfe !important;
+}
+html.dark #add-stock-view [class*="dark:text-emerald-"] {
+  color: #a7f3d0 !important;
+}
+html.dark #add-stock-view [class*="dark:text-rose-"] {
+  color: #fecdd3 !important;
+}
+html.dark #add-stock-view [class*="dark:bg-white/"] ,
+html.dark #add-stock-view [class*="dark:bg-white["] ,
+html.dark #add-stock-view [class*="bg-white/"] {
+  background-color: #10263c !important;
+}
+html.dark #add-stock-view [class*="bg-slate-50"] {
+  background-color: #10263c !important;
+}
+html.dark #add-stock-view [class*="dark:bg-[#081827]"] {
+  background-color: #081827 !important;
+}
+html.dark #add-stock-view [class*="dark:bg-[#10263c]"] {
+  background-color: #10263c !important;
+}
+html.dark #add-stock-view [class*="dark:bg-amber-"] {
+  background-color: rgba(245, 208, 121, 0.12) !important;
+}
+html.dark #add-stock-view [class*="dark:bg-blue-"] {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+html.dark #add-stock-view [class*="dark:bg-emerald-"] {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+html.dark #add-stock-view [class*="dark:bg-rose-"] {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+html.dark #add-stock-view [class*="border-white/"] {
+  border-color: rgba(247, 221, 176, 0.22) !important;
+}
+html.dark #add-stock-view input,
+html.dark #add-stock-view select,
+html.dark #add-stock-view textarea {
+  background-color: #10263c !important;
+  color: #ffffff !important;
+  border-color: rgba(247, 221, 176, 0.34) !important;
+  caret-color: #f7ddb0 !important;
+}
+html.dark #add-stock-view input::placeholder,
+html.dark #add-stock-view textarea::placeholder {
+  color: #a9b8c8 !important;
+  opacity: 1 !important;
+}
+html.dark #add-stock-view select option {
+  background-color: #10263c !important;
+  color: #ffffff !important;
+}
+html:not(.dark) #add-stock-view {
+  color: #0f172a !important;
+}
+html:not(.dark) #add-stock-view [class*="bg-white/"] {
+  background-color: #ffffff !important;
+}
+html:not(.dark) #add-stock-view [class*="border-white/"] {
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) #add-stock-view input,
+html:not(.dark) #add-stock-view select,
+html:not(.dark) #add-stock-view textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) #add-stock-view input::placeholder,
+html:not(.dark) #add-stock-view textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+`;
 
 interface AddStockViewProps {
   data: DatabaseSchema;
@@ -38,6 +138,21 @@ const createEmptyStockItem = (): StockItemDraft => ({
   unit_cost: "",
   sale_price: "",
 });
+
+const INPUT_CLASS =
+  "h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:focus:ring-amber-300/10 dark:[color-scheme:dark]";
+
+const TEXTAREA_CLASS =
+  "min-h-[92px] w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:focus:ring-amber-300/10";
+
+const PANEL_CLASS =
+  "rounded-[2rem] border border-slate-200/90 bg-white/95 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-amber-300/15 dark:bg-[#081827]/95 dark:shadow-[0_24px_70px_rgba(0,0,0,0.35)]";
+
+const SOFT_PANEL_CLASS =
+  "rounded-2xl border border-slate-200 bg-slate-50/90 dark:border-white/10 dark:bg-white/[0.04]";
+
+const LABEL_CLASS =
+  "mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-800 dark:text-slate-200";
 
 export default function AddStockView({
   data,
@@ -81,7 +196,7 @@ export default function AddStockView({
     return activeBooks.filter((book) => book.publisher_id === selectedPublisherId);
   }, [activeBooks, selectedPublisherId]);
 
-    const getBooksForSetRow = (currentIndex: number) => {
+  const getBooksForSetRow = (currentIndex: number) => {
     const currentBookId = stockItems[currentIndex]?.book_id || "";
 
     const selectedBookIds = new Set(
@@ -91,7 +206,7 @@ export default function AddStockView({
 
           return item.book_id;
         })
-        .filter(Boolean)
+        .filter(Boolean),
     );
 
     return booksForSelectedPublisher.filter((book) => {
@@ -107,11 +222,14 @@ export default function AddStockView({
       ? data.publishers.find((publisher) => publisher.id === selectedBook.publisher_id)
       : null;
 
-  const selectedLocation = data.locations.find((location) => location.id === selectedLocationId);
+  const selectedLocation = data.locations.find(
+    (location) => location.id === selectedLocationId,
+  );
 
-  const singleTotal = selectedBook && quantity
-    ? Number(quantity) * Number(unitCost || selectedBook.purchase_cost || 0)
-    : 0;
+  const singleTotal =
+    selectedBook && quantity
+      ? Number(quantity) * Number(unitCost || selectedBook.purchase_cost || 0)
+      : 0;
 
   const setTotal = stockItems.reduce((sum, item) => {
     return sum + Number(item.quantity || 0) * Number(item.unit_cost || 0);
@@ -148,7 +266,9 @@ export default function AddStockView({
 
   useEffect(() => {
     if (data.locations.length > 0 && !selectedLocationId) {
-      const defaultLoc = data.locations.find((location) => location.type === "warehouse") || data.locations[0];
+      const defaultLoc =
+        data.locations.find((location) => location.type === "warehouse") ||
+        data.locations[0];
 
       setSelectedLocationId(defaultLoc.id);
     }
@@ -183,7 +303,7 @@ export default function AddStockView({
           unit_cost: "",
           sale_price: "",
         };
-      })
+      }),
     );
   };
 
@@ -199,7 +319,11 @@ export default function AddStockView({
     }
   };
 
-  const handleStockItemChange = (index: number, field: keyof StockItemDraft, value: string) => {
+  const handleStockItemChange = (
+    index: number,
+    field: keyof StockItemDraft,
+    value: string,
+  ) => {
     setStockItems((currentItems) => {
       return currentItems.map((item, itemIndex) => {
         if (itemIndex !== index) return item;
@@ -240,7 +364,8 @@ export default function AddStockView({
 
   const validateSetItems = () => {
     const completedItems = stockItems.filter(
-      (item) => item.book_id || item.quantity || item.unit_cost || item.sale_price !== ""
+      (item) =>
+        item.book_id || item.quantity || item.unit_cost || item.sale_price !== "",
     );
 
     if (completedItems.length < 2) {
@@ -255,7 +380,9 @@ export default function AddStockView({
       }
 
       if (!item.quantity || Number(item.quantity) <= 0) {
-        throw new Error("Quantity must be greater than 0 for every set/pair book.");
+        throw new Error(
+          "Quantity must be greater than 0 for every set/pair book.",
+        );
       }
 
       if (item.sale_price !== "" && Number(item.sale_price) < 0) {
@@ -263,7 +390,9 @@ export default function AddStockView({
       }
 
       if (bookIds.has(item.book_id)) {
-        throw new Error("The same book is selected more than once in the set/pair.");
+        throw new Error(
+          "The same book is selected more than once in the set/pair.",
+        );
       }
 
       bookIds.add(item.book_id);
@@ -273,12 +402,13 @@ export default function AddStockView({
       book_id: item.book_id,
       quantity: Number(item.quantity),
       unit_cost: Number(item.unit_cost) || 0,
-      sale_price: item.sale_price === "" ? undefined : Number(item.sale_price),
+      sale_price:
+        item.sale_price === "" ? undefined : Number(item.sale_price),
     }));
   };
 
-  const handleAddStock = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddStock = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!selectedPublisherId) {
       onShowNotification("Please select a publisher.", "error");
@@ -315,22 +445,24 @@ export default function AddStockView({
           {
             book_id: selectedBookId,
             quantity: Number(quantity),
-            unit_cost: Number(unitCost) || selectedBook?.purchase_cost || 0,
-            sale_price: salePrice === "" ? undefined : Number(salePrice),
+            unit_cost:
+              Number(unitCost) || selectedBook?.purchase_cost || 0,
+            sale_price:
+              salePrice === "" ? undefined : Number(salePrice),
           },
         ];
       } else {
         items = validateSetItems();
       }
-    } catch (err: any) {
-      onShowNotification(err.message, "error");
+    } catch (error: any) {
+      onShowNotification(error.message, "error");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await apiFetch("/api/add-stock", {
+      const response = await apiFetch("/api/add-stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -345,19 +477,21 @@ export default function AddStockView({
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to add stock.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to add stock.");
       }
 
-      const result = await res.json().catch(() => null);
-      const updatedPriceCount = Number(result?.sale_price_updated_count || 0);
+      const result = await response.json().catch(() => null);
+      const updatedPriceCount = Number(
+        result?.sale_price_updated_count || 0,
+      );
 
       onShowNotification(
         updatedPriceCount > 0
           ? `Stock added successfully. Sale price updated for ${updatedPriceCount} book(s).`
           : "Stock added successfully!",
-        "success"
+        "success",
       );
 
       setSelectedBookId("");
@@ -372,57 +506,126 @@ export default function AddStockView({
       if (onClearPreSelectedBookId) onClearPreSelectedBookId();
 
       onRefresh();
-    } catch (err: any) {
-      onShowNotification(err.message, "error");
+    } catch (error: any) {
+      onShowNotification(error.message, "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div id="add-stock-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800">
-      <div className="border-b border-slate-200/60 pb-5">
-        <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-          <PackagePlus className="w-5 h-5 text-rose-500" />
-          <span>Purchase / Add Stock From Publisher</span>
-        </h1>
-        <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-          Buy books from publishers and receive stock into warehouse, shop, or school locations.
-        </p>
-      </div>
+    <div
+      id="add-stock-view"
+      className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100"
+    >
+      <style>{ADD_STOCK_VIEW_THEME_GUARD}</style>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel border border-white/60 rounded-2xl p-6 shadow-sm">
-          <form onSubmit={handleAddStock} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <section
+        className="
+          relative overflow-hidden rounded-[2rem] border border-amber-200/80
+          bg-[linear-gradient(135deg,#fffdf8_0%,#ffffff_52%,#eef4ff_100%)]
+          px-6 py-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)]
+          dark:border-amber-300/15
+          dark:bg-[linear-gradient(135deg,#081827_0%,#0b1f33_55%,#10263c_100%)]
+          dark:shadow-[0_24px_70px_rgba(0,0,0,0.35)]
+          sm:px-8 sm:py-7
+        "
+      >
+        <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full border border-amber-300/20" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div
+              className="
+                grid h-14 w-14 shrink-0 place-items-center rounded-2xl
+                border border-amber-300/70 bg-white text-amber-700
+                shadow-[0_12px_28px_rgba(180,123,24,0.15)]
+                dark:border-amber-300/25 dark:bg-amber-300/10
+                dark:text-amber-300
+              "
+            >
+              <PackagePlus className="h-7 w-7" />
+            </div>
+
+            <div>
+              <div
+                className="
+                  inline-flex items-center gap-2 rounded-full
+                  border border-amber-300/70 bg-amber-50 px-3 py-1
+                  text-[9px] font-black uppercase tracking-[0.22em]
+                  text-amber-800
+                  dark:border-amber-300/25 dark:bg-amber-300/10
+                  dark:text-amber-200
+                "
+              >
+                <Landmark className="h-3.5 w-3.5" />
+                Publisher purchasing
+              </div>
+
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Purchase / Add Stock From Publisher
+              </h1>
+
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">
+                Buy books from publishers and receive stock into warehouse,
+                shop, or school locations.
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="
+              inline-flex items-center gap-2 self-start rounded-2xl
+              border border-emerald-200 bg-emerald-50 px-4 py-3
+              text-xs font-extrabold text-emerald-800
+              dark:border-emerald-400/20 dark:bg-emerald-400/10
+              dark:text-emerald-200 lg:self-center
+            "
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Safe stock transaction
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className={`${PANEL_CLASS} p-5 sm:p-7 xl:col-span-2`}>
+          <form onSubmit={handleAddStock} className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <label className={LABEL_CLASS}>
+                  <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                   <span>Purchase / Entry Date</span>
                 </label>
+
                 <input
                   type="date"
                   required
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                  onChange={(event) => setDate(event.target.value)}
+                  className={INPUT_CLASS}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                <label className={LABEL_CLASS}>
+                  <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                   <span>Receiving Location *</span>
                 </label>
+
                 <select
                   required
                   value={selectedLocationId}
-                  onChange={(e) => setSelectedLocationId(e.target.value)}
-                  className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                  onChange={(event) =>
+                    setSelectedLocationId(event.target.value)
+                  }
+                  className={INPUT_CLASS}
                 >
                   <option value="" disabled>
                     -- Select Warehouse / Shop / School --
                   </option>
+
                   {activeLocations.map((location) => (
                     <option key={location.id} value={location.id}>
                       {location.name} ({location.type} - {location.code})
@@ -432,46 +635,51 @@ export default function AddStockView({
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                <label className={LABEL_CLASS}>
+                  <Users className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                   <span>Publisher *</span>
                 </label>
+
                 <select
                   required
                   value={selectedPublisherId}
-                  onChange={(e) => handlePublisherChange(e.target.value)}
-                  className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                  onChange={(event) =>
+                    handlePublisherChange(event.target.value)
+                  }
+                  className={INPUT_CLASS}
                 >
                   <option value="">-- Select Publisher --</option>
+
                   {activePublishers.map((publisher) => (
                     <option key={publisher.id} value={publisher.id}>
-                      {publisher.publisher_name} ({publisher.publisher_number})
+                      {publisher.publisher_name} (
+                      {publisher.publisher_number})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-slate-400" />
+                <label className={LABEL_CLASS}>
+                  <Layers className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                   <span>Purchase Type</span>
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => setPurchaseType("single")}
-                    className={`rounded-xl border px-4 py-3 text-left text-xs font-bold transition-all ${
+                    className={`rounded-2xl border p-4 text-left transition ${
                       purchaseType === "single"
-                        ? "border-rose-300 bg-rose-50 text-rose-600"
-                        : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                        ? "border-amber-400 bg-amber-50 text-amber-950 shadow-[0_10px_26px_rgba(180,123,24,0.12)] dark:border-amber-300/40 dark:bg-amber-300/10 dark:text-amber-100"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50/60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-amber-300/25 dark:hover:bg-amber-300/[0.07]"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-sm font-extrabold">
+                      <BookOpen className="h-4 w-4" />
                       <span>Single Book</span>
                     </div>
-                    <p className="mt-1 text-[10px] font-medium text-slate-400">
+                    <p className="mt-2 text-xs font-semibold leading-5 opacity-75">
                       Add stock for one selected book.
                     </p>
                   </button>
@@ -479,17 +687,17 @@ export default function AddStockView({
                   <button
                     type="button"
                     onClick={() => setPurchaseType("set")}
-                    className={`rounded-xl border px-4 py-3 text-left text-xs font-bold transition-all ${
+                    className={`rounded-2xl border p-4 text-left transition ${
                       purchaseType === "set"
-                        ? "border-rose-300 bg-rose-50 text-rose-600"
-                        : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                        ? "border-amber-400 bg-amber-50 text-amber-950 shadow-[0_10px_26px_rgba(180,123,24,0.12)] dark:border-amber-300/40 dark:bg-amber-300/10 dark:text-amber-100"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50/60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-amber-300/25 dark:hover:bg-amber-300/[0.07]"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-sm font-extrabold">
+                      <Layers className="h-4 w-4" />
                       <span>Pair / Set / Bundle</span>
                     </div>
-                    <p className="mt-1 text-[10px] font-medium text-slate-400">
+                    <p className="mt-2 text-xs font-semibold leading-5 opacity-75">
                       Add 2, 3, or more books together.
                     </p>
                   </button>
@@ -498,152 +706,234 @@ export default function AddStockView({
             </div>
 
             {purchaseType === "single" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Select Book *</span>
-                  </label>
-                  <select
-                    required={purchaseType === "single"}
-                    value={selectedBookId}
-                    onChange={(e) => handleSingleBookChange(e.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+              <div className={`${SOFT_PANEL_CLASS} p-4 sm:p-5`}>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className={LABEL_CLASS}>
+                      <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                      <span>Select Book *</span>
+                    </label>
+
+                    <select
+                      required={purchaseType === "single"}
+                      value={selectedBookId}
+                      onChange={(event) =>
+                        handleSingleBookChange(event.target.value)
+                      }
+                      className={INPUT_CLASS}
+                    >
+                      <option value="">-- Choose Registered Book --</option>
+
+                      {booksForSelectedPublisher.map((book) => (
+                        <option key={book.id} value={book.id}>
+                          {book.title} ({book.book_number})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedBook && (
+                    <div
+                      className="
+                        grid grid-cols-1 gap-4 rounded-2xl border
+                        border-slate-200 bg-white p-4
+                        dark:border-white/10 dark:bg-white/[0.04]
+                        sm:col-span-2 sm:grid-cols-2
+                      "
+                    >
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Book Publisher
+                        </span>
+                        <p className="mt-1 text-sm font-extrabold text-slate-950 dark:text-white">
+                          {selectedPublisher
+                            ? selectedPublisher.publisher_name
+                            : "N/A"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Book Code
+                        </span>
+                        <p className="mt-1 font-mono text-sm font-extrabold text-amber-700 dark:text-amber-300">
+                          {selectedBook.book_number}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className={LABEL_CLASS}>
+                      <Calculator className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                      <span>Quantity to Add *</span>
+                    </label>
+
+                    <input
+                      type="number"
+                      min={1}
+                      required={purchaseType === "single"}
+                      placeholder="e.g. 50"
+                      value={quantity}
+                      onChange={(event) =>
+                        setQuantity(
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value),
+                        )
+                      }
+                      className={INPUT_CLASS}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={LABEL_CLASS}>
+                      <ReceiptText className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                      <span>Unit Cost (PKR)</span>
+                    </label>
+
+                    <input
+                      type="number"
+                      min={0}
+                      value={unitCost}
+                      onChange={(event) =>
+                        setUnitCost(
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value),
+                        )
+                      }
+                      placeholder="Purchase unit cost"
+                      className={INPUT_CLASS}
+                    />
+                  </div>
+
+                  <div
+                    className="
+                      rounded-2xl border border-blue-200 bg-blue-50 p-4
+                      text-blue-950 dark:border-blue-400/20
+                      dark:bg-blue-400/10 dark:text-blue-100
+                      sm:col-span-2
+                    "
                   >
-                    <option value="">-- Choose Registered Book --</option>
-                    {booksForSelectedPublisher.map((book) => (
-                      <option key={book.id} value={book.id}>
-                        {book.title} ({book.book_number})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                          Current Sale Price
+                        </p>
+                        <p className="mt-1 font-mono text-lg font-extrabold text-slate-950 dark:text-white">
+                          PKR{" "}
+                          {Number(
+                            selectedBook?.sale_price || 0,
+                          ).toLocaleString()}
+                        </p>
+                      </div>
 
-                {selectedBook && (
-                  <div className="sm:col-span-2 bg-white border border-slate-100 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">Book Publisher</span>
-                      <p className="text-slate-800 font-bold mt-0.5 text-xs">
-                        {selectedPublisher ? selectedPublisher.publisher_name : "N/A"}
-                      </p>
+                      <div>
+                        <label className="mb-2 block text-xs font-extrabold text-blue-950 dark:text-blue-100">
+                          New Sale Price (PKR)
+                        </label>
+
+                        <input
+                          type="number"
+                          min={0}
+                          value={salePrice}
+                          onChange={(event) =>
+                            setSalePrice(
+                              event.target.value === ""
+                                ? ""
+                                : Number(event.target.value),
+                            )
+                          }
+                          placeholder="Enter new selling price"
+                          className={INPUT_CLASS}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">Book Code</span>
-                      <p className="text-rose-500 font-mono font-extrabold mt-0.5 text-xs">
-                        {selectedBook.book_number}
-                      </p>
-                    </div>
+
+                    <p className="mt-3 text-xs font-semibold leading-5 text-blue-800 dark:text-blue-200">
+                      Saving this stock entry will replace the book&apos;s
+                      current sale price with the new price entered above.
+                    </p>
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                    <Calculator className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Quantity to Add *</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    required={purchaseType === "single"}
-                    placeholder="e.g. 50"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value === "" ? "" : Number(e.target.value))}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Unit Cost (PKR)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={unitCost}
-                    onChange={(e) => setUnitCost(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="Purchase unit cost"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                    <div>
-                      <p className="text-[10px] font-extrabold uppercase tracking-wide text-blue-500">
-                        Current Sale Price
-                      </p>
-                      <p className="mt-1 font-mono text-sm font-extrabold text-slate-800">
-                        PKR {Number(selectedBook?.sale_price || 0).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">
-                        New Sale Price (PKR)
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={salePrice}
-                        onChange={(e) => setSalePrice(e.target.value === "" ? "" : Number(e.target.value))}
-                        placeholder="Enter new selling price"
-                        className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <p className="mt-2 text-[10px] font-semibold text-blue-600">
-                    Saving this stock entry will replace the book&apos;s current sale price with the new price entered above.
-                  </p>
                 </div>
               </div>
             )}
 
             {purchaseType === "set" && (
-              <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+              <div className={`${SOFT_PANEL_CLASS} space-y-4 p-4 sm:p-5`}>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                    <Layers className="w-3.5 h-3.5 text-slate-400" />
+                  <label className={LABEL_CLASS}>
+                    <Layers className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                     <span>Set / Pair Name</span>
                   </label>
+
                   <input
                     type="text"
                     value={setName}
-                    onChange={(e) => setSetName(e.target.value)}
+                    onChange={(event) => setSetName(event.target.value)}
                     placeholder="e.g. Class 5 English Set"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className={INPUT_CLASS}
                   />
                 </div>
 
                 <div className="space-y-3">
                   {stockItems.map((item, index) => {
-                    const selectedItemBook = data.books.find((book) => book.id === item.book_id);
+                    const selectedItemBook = data.books.find(
+                      (book) => book.id === item.book_id,
+                    );
 
                     return (
-                      <div key={index} className="rounded-xl border border-slate-200 bg-white p-3">
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+                      <div
+                        key={index}
+                        className="
+                          rounded-2xl border border-slate-200 bg-white p-4
+                          shadow-sm dark:border-white/10
+                          dark:bg-white/[0.04]
+                        "
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                             Book Row {index + 1}
                           </p>
 
                           <button
                             type="button"
                             onClick={() => removeStockItemRow(index)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-rose-100 px-2 py-1 text-[10px] font-bold text-rose-500 hover:bg-rose-50"
+                            className="
+                              inline-flex items-center gap-1 rounded-xl
+                              border border-rose-200 bg-rose-50 px-3 py-2
+                              text-[10px] font-extrabold text-rose-700
+                              transition hover:bg-rose-100
+                              dark:border-rose-400/20
+                              dark:bg-rose-400/10 dark:text-rose-200
+                            "
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="h-3.5 w-3.5" />
                             <span>Remove</span>
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
                           <div className="sm:col-span-5">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Book *</label>
+                            <label className="mb-2 block text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+                              Book *
+                            </label>
+
                             <select
                               value={item.book_id}
-                              onChange={(e) => handleStockItemChange(index, "book_id", e.target.value)}
-                              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                              onChange={(event) =>
+                                handleStockItemChange(
+                                  index,
+                                  "book_id",
+                                  event.target.value,
+                                )
+                              }
+                              className={INPUT_CLASS}
                             >
                               <option value="">-- Select Book --</option>
-                                                            {getBooksForSetRow(index).map((book) => (
+
+                              {getBooksForSetRow(index).map((book) => (
                                 <option key={book.id} value={book.id}>
                                   {book.title} ({book.book_number})
                                 </option>
@@ -652,51 +942,87 @@ export default function AddStockView({
                           </div>
 
                           <div className="sm:col-span-2">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Quantity *</label>
+                            <label className="mb-2 block text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+                              Quantity *
+                            </label>
+
                             <input
                               type="number"
                               min={1}
                               value={item.quantity}
-                              onChange={(e) => handleStockItemChange(index, "quantity", e.target.value)}
-                              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                              onChange={(event) =>
+                                handleStockItemChange(
+                                  index,
+                                  "quantity",
+                                  event.target.value,
+                                )
+                              }
+                              className={INPUT_CLASS}
                             />
                           </div>
 
                           <div className="sm:col-span-2">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Unit Cost</label>
+                            <label className="mb-2 block text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+                              Unit Cost
+                            </label>
+
                             <input
                               type="number"
                               min={0}
                               value={item.unit_cost}
-                              onChange={(e) => handleStockItemChange(index, "unit_cost", e.target.value)}
-                              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                              onChange={(event) =>
+                                handleStockItemChange(
+                                  index,
+                                  "unit_cost",
+                                  event.target.value,
+                                )
+                              }
+                              className={INPUT_CLASS}
                             />
                           </div>
 
                           <div className="sm:col-span-3">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1">
+                            <label className="mb-2 block text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
                               New Sale Price
                             </label>
+
                             <input
                               type="number"
                               min={0}
                               value={item.sale_price}
-                              onChange={(e) => handleStockItemChange(index, "sale_price", e.target.value)}
-                              placeholder={selectedItemBook ? `Current: ${selectedItemBook.sale_price}` : "New price"}
-                              className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                              onChange={(event) =>
+                                handleStockItemChange(
+                                  index,
+                                  "sale_price",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder={
+                                selectedItemBook
+                                  ? `Current: ${selectedItemBook.sale_price}`
+                                  : "New price"
+                              }
+                              className={INPUT_CLASS}
                             />
                           </div>
                         </div>
 
                         {selectedItemBook && (
-                          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-400">
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <p>
-                              Selected: <span className="text-slate-600">{selectedItemBook.title}</span>
+                              Selected:{" "}
+                              <span className="font-extrabold text-slate-950 dark:text-white">
+                                {selectedItemBook.title}
+                              </span>
                             </p>
+
                             <p>
                               Current Sale Price:{" "}
-                              <span className="font-mono font-extrabold text-blue-600">
-                                PKR {Number(selectedItemBook.sale_price || 0).toLocaleString()}
+                              <span className="font-mono font-extrabold text-blue-700 dark:text-blue-300">
+                                PKR{" "}
+                                {Number(
+                                  selectedItemBook.sale_price || 0,
+                                ).toLocaleString()}
                               </span>
                             </p>
                           </div>
@@ -709,114 +1035,217 @@ export default function AddStockView({
                 <button
                   type="button"
                   onClick={addStockItemRow}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  className="
+                    inline-flex items-center gap-2 rounded-2xl
+                    border border-slate-300 bg-white px-4 py-3
+                    text-xs font-extrabold text-slate-800 shadow-sm
+                    transition hover:border-amber-400 hover:bg-amber-50
+                    hover:text-amber-800
+                    dark:border-white/15 dark:bg-white/[0.05]
+                    dark:text-slate-200 dark:hover:border-amber-300/30
+                    dark:hover:bg-amber-300/10
+                    dark:hover:text-amber-200
+                  "
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="h-4 w-4" />
                   <span>Add Another Book</span>
                 </button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className={LABEL_CLASS}>
+                  <FileText className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                   <span>Supplier Reference / Invoice #</span>
                 </label>
+
                 <input
                   type="text"
                   value={reference}
-                  onChange={(e) => setReference(e.target.value)}
+                  onChange={(event) => setReference(event.target.value)}
                   placeholder="e.g. INVOICE-881"
-                  className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                  className={INPUT_CLASS}
                 />
               </div>
 
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 mb-1">Receiving Notes</label>
+              <div>
+                <label className={LABEL_CLASS}>
+                  <Info className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                  <span>Receiving Notes</span>
+                </label>
+
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={(event) => setNotes(event.target.value)}
                   placeholder="Describe damage, transit details, or batch specifications..."
-                  className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none resize-none"
+                  className={TEXTAREA_CLASS}
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="flex justify-end border-t border-slate-200 pt-5 dark:border-white/10">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-6 py-2.5 btn-premium-pink text-white rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                className="
+                  inline-flex w-full items-center justify-center gap-2
+                  rounded-2xl border border-amber-400
+                  bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)]
+                  px-6 py-3.5 text-sm font-extrabold text-slate-950
+                  shadow-[0_14px_32px_rgba(180,123,24,0.24)]
+                  transition hover:-translate-y-0.5 hover:brightness-105
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  disabled:hover:translate-y-0
+                  dark:border-amber-300/40 dark:text-[#081827]
+                  sm:w-auto
+                "
               >
                 {loading ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950/30 border-t-slate-950" />
                 ) : (
-                  <Plus className="w-4 h-4 text-white" />
+                  <Plus className="h-4 w-4" />
                 )}
+
                 <span>Receive & Add Stock</span>
               </button>
             </div>
           </form>
         </div>
 
-        <div className="space-y-6">
-          <div className="glass-panel border border-white/60 rounded-2xl p-5 text-slate-700 shadow-sm">
-            <h3 className="font-bold text-slate-800 text-xs flex items-center gap-1.5 mb-2.5">
-              <Info className="w-4 h-4 text-rose-500" />
-              <span>Purchase Summary</span>
-            </h3>
-
-            <div className="space-y-3 text-[11px] font-semibold text-slate-500">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <span className="block text-[10px] uppercase font-extrabold text-slate-400">Publisher</span>
-                <p className="mt-0.5 text-slate-700">
-                  {selectedPublisher ? selectedPublisher.publisher_name : "Not selected"}
-                </p>
+        <aside className="space-y-6">
+          <div className={`${PANEL_CLASS} p-5`}>
+            <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-white/10">
+              <div
+                className="
+                  grid h-10 w-10 place-items-center rounded-2xl
+                  border border-amber-300 bg-amber-50 text-amber-700
+                  dark:border-amber-300/25 dark:bg-amber-300/10
+                  dark:text-amber-300
+                "
+              >
+                <ReceiptText className="h-5 w-5" />
               </div>
 
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <span className="block text-[10px] uppercase font-extrabold text-slate-400">Location</span>
-                <p className="mt-0.5 text-slate-700">
-                  {selectedLocation ? `${selectedLocation.name} (${selectedLocation.type})` : "Not selected"}
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+                  Purchase Summary
+                </h3>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Live values from this form
                 </p>
               </div>
+            </div>
 
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <span className="block text-[10px] uppercase font-extrabold text-slate-400">Estimated Total</span>
-                <p className="mt-0.5 text-slate-700">
-                  PKR {(purchaseType === "single" ? singleTotal : setTotal).toLocaleString()}
-                </p>
-              </div>
+            <div className="mt-4 space-y-3">
+              <SummaryRow
+                label="Publisher"
+                value={
+                  selectedPublisher
+                    ? selectedPublisher.publisher_name
+                    : "Not selected"
+                }
+              />
+
+              <SummaryRow
+                label="Location"
+                value={
+                  selectedLocation
+                    ? `${selectedLocation.name} (${selectedLocation.type})`
+                    : "Not selected"
+                }
+              />
+
+              <SummaryRow
+                label="Estimated Total"
+                value={`PKR ${(
+                  purchaseType === "single" ? singleTotal : setTotal
+                ).toLocaleString()}`}
+                strong
+              />
 
               {purchaseType === "set" && (
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <span className="block text-[10px] uppercase font-extrabold text-slate-400">Set Total Quantity</span>
-                  <p className="mt-0.5 text-slate-700">{setTotalQuantity.toLocaleString()} units</p>
-                </div>
+                <SummaryRow
+                  label="Set Total Quantity"
+                  value={`${setTotalQuantity.toLocaleString()} units`}
+                />
               )}
             </div>
           </div>
 
-          <div className="glass-panel border border-white/60 rounded-2xl p-5 text-slate-700 shadow-sm">
-            <h3 className="font-bold text-slate-800 text-xs flex items-center gap-1.5 mb-2.5">
-              <Info className="w-4 h-4 text-rose-500" />
-              <span>Safe Stock Keeping</span>
-            </h3>
-            <p className="text-slate-500 text-[11px] leading-relaxed font-semibold">
+          <div className={`${PANEL_CLASS} p-5`}>
+            <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-white/10">
+              <div
+                className="
+                  grid h-10 w-10 place-items-center rounded-2xl
+                  border border-emerald-200 bg-emerald-50 text-emerald-700
+                  dark:border-emerald-400/20 dark:bg-emerald-400/10
+                  dark:text-emerald-300
+                "
+              >
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+                  Safe Stock Keeping
+                </h3>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  What happens after saving
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300">
               When you click <b>Receive & Add Stock</b>:
             </p>
-            <ul className="list-disc list-inside text-[11px] text-slate-500 mt-2 space-y-1.5 pl-1 font-medium">
-              <li>Each book creates a permanent <b className="text-slate-700">Stock Entry record</b>.</li>
-              <li>A read-only <b className="text-slate-700">Stock History transaction</b> is linked.</li>
-              <li>The <b className="text-slate-700">Available Stock balance</b> for this location increases.</li>
-              <li>Pair/set purchases increase stock book-by-book.</li>
-              <li>Entered new sale prices replace the books&apos; current sale prices.</li>
+
+            <ul className="mt-3 space-y-3 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-300">
+              {[
+                "Each book creates a permanent Stock Entry record.",
+                "A read-only Stock History transaction is linked.",
+                "The Available Stock balance for this location increases.",
+                "Pair/set purchases increase stock book-by-book.",
+                "Entered new sale prices replace the books’ current sale prices.",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500 dark:bg-amber-300" />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
-        </div>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) {
+  return (
+    <div className={SOFT_PANEL_CLASS + " p-4"}>
+      <span className="block text-[10px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
+
+      <p
+        className={`mt-1 break-words text-sm ${
+          strong
+            ? "font-mono font-extrabold text-amber-700 dark:text-amber-300"
+            : "font-extrabold text-slate-950 dark:text-white"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

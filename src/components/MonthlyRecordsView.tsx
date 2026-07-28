@@ -10,8 +10,9 @@ interface MonthlyRecordsViewProps {
   data: DatabaseSchema;
 }
 
+const MAX_RENDERED_ROWS = 150;
+
 export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
-    const MAX_RENDERED_ROWS = 150;
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-indexed
 
@@ -387,42 +388,54 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
     });
   }, [data.locations, data.books, filteredBooksMap, data.stock_balances, monthlySales, data.sale_items]);
 
+  // Screen tables are capped for responsiveness.
+  // CSV and PDF exports below intentionally use the complete filtered arrays.
+  const visibleMonthlyEntries = useMemo(
+    () => monthlyEntries.slice(0, MAX_RENDERED_ROWS),
+    [monthlyEntries],
+  );
+
+  const visibleMonthlySales = useMemo(
+    () => monthlySales.slice(0, MAX_RENDERED_ROWS),
+    [monthlySales],
+  );
+
+  const visibleMonthlyCustomerReturns = useMemo(
+    () => monthlyCustomerReturns.slice(0, MAX_RENDERED_ROWS),
+    [monthlyCustomerReturns],
+  );
+
+  const visibleMonthlyPublisherReturns = useMemo(
+    () => monthlyPublisherReturns.slice(0, MAX_RENDERED_ROWS),
+    [monthlyPublisherReturns],
+  );
+
+  const visibleMonthlyTransfers = useMemo(
+    () => monthlyTransfers.slice(0, MAX_RENDERED_ROWS),
+    [monthlyTransfers],
+  );
+
+  const visibleMonthlyDamageLoss = useMemo(
+    () => monthlyDamageLoss.slice(0, MAX_RENDERED_ROWS),
+    [monthlyDamageLoss],
+  );
+
+  const visibleBookWiseSummary = useMemo(
+    () => bookWiseSummary.slice(0, MAX_RENDERED_ROWS),
+    [bookWiseSummary],
+  );
+
+  const visiblePublisherWiseSummary = useMemo(
+    () => publisherWiseSummary.slice(0, MAX_RENDERED_ROWS),
+    [publisherWiseSummary],
+  );
+
+  const visibleLocationWiseSummary = useMemo(
+    () => locationWiseSummary.slice(0, MAX_RENDERED_ROWS),
+    [locationWiseSummary],
+  );
+
   const handlePrint = () => {
-      const visibleMonthlyEntries = useMemo(() => {
-    return monthlyEntries.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlyEntries]);
-
-  const visibleMonthlySales = useMemo(() => {
-    return monthlySales.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlySales]);
-
-  const visibleMonthlyCustomerReturns = useMemo(() => {
-    return monthlyCustomerReturns.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlyCustomerReturns]);
-
-  const visibleMonthlyPublisherReturns = useMemo(() => {
-    return monthlyPublisherReturns.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlyPublisherReturns]);
-
-  const visibleMonthlyTransfers = useMemo(() => {
-    return monthlyTransfers.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlyTransfers]);
-
-  const visibleMonthlyDamageLoss = useMemo(() => {
-    return monthlyDamageLoss.slice(0, MAX_RENDERED_ROWS);
-  }, [monthlyDamageLoss]);
-
-  const visibleBookWiseSummary = useMemo(() => {
-    return bookWiseSummary.slice(0, MAX_RENDERED_ROWS);
-  }, [bookWiseSummary]);
-
-  const visiblePublisherWiseSummary = useMemo(() => {
-    return publisherWiseSummary.slice(0, MAX_RENDERED_ROWS);
-  }, [publisherWiseSummary]);
-
-  const visibleLocationWiseSummary = useMemo(() => {
-    return locationWiseSummary.slice(0, MAX_RENDERED_ROWS);
-  }, [locationWiseSummary]);
     window.print();
   };
 
@@ -704,10 +717,186 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12 text-slate-800">
+    <div
+      id="monthly-records-view"
+      className="space-y-6 animate-fadeIn pb-12 text-slate-950 dark:text-slate-100"
+    >
+      <style>{`
+        #monthly-records-view .monthly-readable,
+        #monthly-records-view .text-slate-900,
+        #monthly-records-view .text-slate-800,
+        #monthly-records-view .text-slate-700,
+        #monthly-records-view .text-slate-600 {
+          color: #0f172a !important;
+        }
+
+        #monthly-records-view .monthly-muted,
+        #monthly-records-view .text-slate-500,
+        #monthly-records-view .text-slate-400 {
+          color: #475569 !important;
+        }
+
+        #monthly-records-view .glass-panel,
+        #monthly-records-view .glass-card {
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 20px 55px rgba(15, 23, 42, 0.10) !important;
+        }
+
+        #monthly-records-view input,
+        #monthly-records-view select,
+        #monthly-records-view textarea {
+          background-color: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #0f172a !important;
+          min-height: 42px;
+        }
+
+        #monthly-records-view input::placeholder,
+        #monthly-records-view textarea::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
+        }
+
+        #monthly-records-view table {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+        }
+
+        #monthly-records-view table thead {
+          background-color: #f1f5f9 !important;
+        }
+
+        #monthly-records-view table th {
+          color: #334155 !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        #monthly-records-view table td {
+          border-color: #e2e8f0 !important;
+        }
+
+        #monthly-records-view table tbody tr:hover {
+          background-color: #fffbeb !important;
+        }
+
+        #monthly-records-view .btn-premium-pink {
+          border: 1px solid #d6a73d !important;
+          background: linear-gradient(135deg, #8a5a11 0%, #c58a26 50%, #f0c667 100%) !important;
+          color: #081827 !important;
+          box-shadow: 0 14px 32px rgba(180, 123, 24, 0.22) !important;
+        }
+
+        #monthly-records-view .btn-premium-pink svg {
+          color: #081827 !important;
+        }
+
+        html.dark #monthly-records-view .monthly-readable,
+        html.dark #monthly-records-view .text-slate-900,
+        html.dark #monthly-records-view .text-slate-800,
+        html.dark #monthly-records-view .text-slate-700,
+        html.dark #monthly-records-view .text-slate-600 {
+          color: #f8fafc !important;
+        }
+
+        html.dark #monthly-records-view .monthly-muted,
+        html.dark #monthly-records-view .text-slate-500,
+        html.dark #monthly-records-view .text-slate-400 {
+          color: #cbd5e1 !important;
+        }
+
+        html.dark #monthly-records-view .glass-panel,
+        html.dark #monthly-records-view .glass-card {
+          background-color: #081827 !important;
+          border-color: rgba(252, 211, 77, 0.22) !important;
+          box-shadow: 0 26px 78px rgba(0, 0, 0, 0.42) !important;
+        }
+
+        html.dark #monthly-records-view input,
+        html.dark #monthly-records-view select,
+        html.dark #monthly-records-view textarea {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.18) !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #monthly-records-view input::placeholder,
+        html.dark #monthly-records-view textarea::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+        }
+
+        html.dark #monthly-records-view option {
+          background-color: #0f2236 !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #monthly-records-view table {
+          background-color: #081827 !important;
+          color: #f8fafc !important;
+        }
+
+        html.dark #monthly-records-view table thead {
+          background-color: #10263c !important;
+        }
+
+        html.dark #monthly-records-view table th {
+          color: #e2e8f0 !important;
+          border-color: rgba(255, 255, 255, 0.14) !important;
+        }
+
+        html.dark #monthly-records-view table td {
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #monthly-records-view table tbody tr {
+          background-color: #081827 !important;
+        }
+
+        html.dark #monthly-records-view table tbody tr:hover {
+          background-color: #10263c !important;
+        }
+
+        html.dark #monthly-records-view button.bg-white,
+        html.dark #monthly-records-view div.bg-white {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.16) !important;
+        }
+
+        html.dark #monthly-records-view .bg-slate-50,
+        html.dark #monthly-records-view .bg-slate-100 {
+          background-color: #10263c !important;
+        }
+
+        @media print {
+          #monthly-records-view,
+          #monthly-records-view .glass-panel,
+          #monthly-records-view .glass-card,
+          #monthly-records-view table,
+          #monthly-records-view table thead,
+          #monthly-records-view table tbody tr {
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+          }
+
+          #monthly-records-view table th,
+          #monthly-records-view table td,
+          #monthly-records-view .text-slate-900,
+          #monthly-records-view .text-slate-800,
+          #monthly-records-view .text-slate-700,
+          #monthly-records-view .text-slate-600,
+          #monthly-records-view .text-slate-500,
+          #monthly-records-view .text-slate-400 {
+            color: #000000 !important;
+          }
+        }
+      `}</style>
       
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5 no-print">
+      <div className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7 no-print">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.09),transparent_35%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.13),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_35%)]" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-rose-500" />
@@ -734,10 +923,11 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
             <span>Export Audit PDF</span>
           </button>
         </div>
+        </div>
       </div>
 
       {/* FILTER PANEL */}
-      <div className="glass-panel border border-white/60 rounded-2xl p-5 space-y-4 no-print shadow-sm">
+      <div className="glass-panel border border-slate-300 dark:border-amber-300/20 rounded-2xl p-5 space-y-4 no-print shadow-sm">
         <div className="flex items-center gap-2 border-b border-slate-100 pb-2 mb-1">
           <Sliders className="w-4 h-4 text-rose-500" />
           <span className="text-xs font-bold text-slate-800">Fine-tune Filters</span>
@@ -873,43 +1063,43 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
 
       {/* KPI GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Opening Stock</p>
           <p className="text-xl font-display font-bold text-slate-800 mt-1">{openingStockQty.toLocaleString()} units</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Starting month balance</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Stock Received</p>
           <p className="text-xl font-display font-bold text-emerald-600 mt-1">+{totalAddedQty.toLocaleString()} units</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">New entries logged</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Sold Units</p>
           <p className="text-xl font-display font-bold text-indigo-600 mt-1">-{totalSoldQty.toLocaleString()} units</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Sales invoice outtakes</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Closing Stock</p>
           <p className="text-xl font-display font-bold text-slate-800 mt-1">{closingStockQty.toLocaleString()} units</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Calculated ending stock</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Sales Revenue</p>
           <p className="text-xl font-display font-bold text-emerald-600 mt-1">PKR {totalSalesRevenue.toLocaleString()}</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Net customer receivables</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Stock Value</p>
           <p className="text-xl font-display font-bold text-slate-800 mt-1">PKR {totalStockValue.toLocaleString()}</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Valued at purchase cost</div>
         </div>
 
-        <div className="glass-card border border-slate-200/50 p-4 rounded-2xl shadow-sm col-span-2">
+        <div className="glass-card border border-slate-300 dark:border-amber-300/15 p-4 rounded-2xl shadow-sm col-span-2">
           <p className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Estimated Gross profit</p>
           <p className="text-xl font-display font-bold text-emerald-600 mt-1">PKR {grossProfit.toLocaleString()}</p>
           <div className="text-[9px] text-slate-400 mt-1 font-medium">Sales revenue less cost of goods sold</div>
@@ -917,7 +1107,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
       </div>
 
       {/* DATA TABS SECTION */}
-      <div className="glass-panel rounded-2xl border border-white/60 overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-2xl border border-slate-300 dark:border-amber-300/20 overflow-hidden shadow-sm">
         
         {/* TAB LIST */}
         <div className="bg-slate-50 px-5 py-3 border-b border-slate-100 flex flex-wrap gap-2 text-xs font-bold items-center">
@@ -990,7 +1180,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={7} className="text-center py-10 text-slate-400 font-mono font-medium">No stock entry records found for this period.</td>
                     </tr>
                   ) : (
-                    monthlyEntries.map(e => (
+                    visibleMonthlyEntries.map(e => (
                       <tr key={e.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 font-mono font-bold text-rose-500">{e.entry_number}</td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(e.date).toLocaleDateString()}</td>
@@ -1025,7 +1215,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={7} className="text-center py-10 text-slate-400 font-mono font-medium">No sales invoices found for this period.</td>
                     </tr>
                   ) : (
-                    monthlySales.map(s => (
+                    visibleMonthlySales.map(s => (
                       <tr key={s.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 font-mono font-bold text-slate-800">{s.sale_number}</td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(s.date).toLocaleDateString()}</td>
@@ -1060,7 +1250,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={7} className="text-center py-10 text-slate-400 font-mono font-medium">No customer return transactions found for this month.</td>
                     </tr>
                   ) : (
-                    monthlyCustomerReturns.map(r => (
+                    visibleMonthlyCustomerReturns.map(r => (
                       <tr key={r.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 font-mono font-bold text-rose-500">{r.return_number}</td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(r.date).toLocaleDateString()}</td>
@@ -1095,7 +1285,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={7} className="text-center py-10 text-slate-400 font-mono font-medium">No publisher returns found for this month.</td>
                     </tr>
                   ) : (
-                    monthlyPublisherReturns.map(r => (
+                    visibleMonthlyPublisherReturns.map(r => (
                       <tr key={r.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 font-mono font-bold text-rose-500">{r.return_number}</td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(r.date).toLocaleDateString()}</td>
@@ -1129,7 +1319,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={6} className="text-center py-10 text-slate-400 font-mono font-medium">No stock transfer transactions found for this period.</td>
                     </tr>
                   ) : (
-                    monthlyTransfers.map(t => (
+                    visibleMonthlyTransfers.map(t => (
                       <tr key={t.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 font-mono font-bold text-indigo-500">{t.transfer_number}</td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(t.date).toLocaleDateString()}</td>
@@ -1162,7 +1352,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                       <td colSpan={6} className="text-center py-10 text-slate-400 font-mono font-medium">No damage or write-off records found.</td>
                     </tr>
                   ) : (
-                    monthlyDamageLoss.map(d => (
+                    visibleMonthlyDamageLoss.map(d => (
                       <tr key={d.id} className="hover:bg-white/40">
                         <td className="px-5 py-4 text-slate-500 font-medium">{new Date(d.date).toLocaleDateString()}</td>
                         <td className="px-5 py-4 font-bold text-slate-800">{data.books.find(b => b.id === d.book_id)?.title}</td>
@@ -1192,7 +1382,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {bookWiseSummary.map(b => (
+                  {visibleBookWiseSummary.map(b => (
                     <tr key={b.id} className="hover:bg-white/40">
                       <td className="px-5 py-4 font-mono font-bold text-slate-400 text-[10px]">{b.code}</td>
                       <td className="px-5 py-4 font-bold text-slate-800">{b.title}</td>
@@ -1221,7 +1411,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {publisherWiseSummary.map(p => (
+                  {visiblePublisherWiseSummary.map(p => (
                     <tr key={p.id} className="hover:bg-white/40">
                       <td className="px-5 py-4 font-mono font-bold text-slate-400 text-[10px]">{p.code}</td>
                       <td className="px-5 py-4 font-bold text-slate-800">{p.name}</td>
@@ -1248,7 +1438,7 @@ export default function MonthlyRecordsView({ data }: MonthlyRecordsViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {locationWiseSummary.map(l => (
+                  {visibleLocationWiseSummary.map(l => (
                     <tr key={l.id} className="hover:bg-white/40">
                       <td className="px-5 py-4 font-mono font-bold text-slate-400 text-[10px]">{l.code}</td>
                       <td className="px-5 py-4 font-bold text-slate-800">{l.name}</td>

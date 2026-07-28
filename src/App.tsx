@@ -29,6 +29,9 @@ import {
   CalendarDays,
   BarChart3,
   Bookmark,
+  Tags,
+  Search,
+  LibraryBig,
 } from "lucide-react";
 import { DatabaseSchema } from "./types";
 import { useAuth } from "./auth/AuthContext";
@@ -50,6 +53,7 @@ const TransfersView = React.lazy(() => import("./components/TransfersView"));
 const DamageLossView = React.lazy(() => import("./components/DamageLossView"));
 
 const SubjectsView = React.lazy(() => import("./components/SubjectsView"));
+const CategoriesView = React.lazy(() => import("./components/CategoriesView"));
 
 const ReportsView = React.lazy(() => import("./components/ReportsView"));
 const MonthlyRecordsView = React.lazy(() => import("./components/MonthlyRecordsView"));
@@ -115,8 +119,11 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showLogoPreview, setShowLogoPreview] = useState(false);
   const [preSelectedBookId, setPreSelectedBookId] = useState<string | undefined>(undefined);
+  const [preSelectedReturnMode, setPreSelectedReturnMode] = useState<"customer" | "publisher">("customer");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [navigationQuery, setNavigationQuery] = useState("");
+  const [isNavigationSearchOpen, setIsNavigationSearchOpen] = useState(false);
 
   const getInitialTheme = (): "light" | "dark" => {
     if (typeof window === "undefined") return "light";
@@ -186,6 +193,7 @@ export default function App() {
     };
   }, [isMobileSidebarOpen]);
 
+
   const pagePermissions: Record<string, string> = {
     dashboard: "data.read",
     "quick-setup": "inventory.manage",
@@ -198,6 +206,7 @@ export default function App() {
     stocklist: "data.read",
     gradesets: "inventory.manage",
     subjects: "inventory.manage",
+    categories: "inventory.manage",
     publishers: "inventory.manage",
     locations: "inventory.manage",
     reports: "data.read",
@@ -222,9 +231,13 @@ export default function App() {
 
     setCurrentPage(page);
     setIsMobileSidebarOpen(false);
+    setIsNavigationSearchOpen(false);
 
     if (page !== "addstock" && page !== "sales" && page !== "returns") {
       setPreSelectedBookId(undefined);
+    }
+    if (page === "returns") {
+      setPreSelectedReturnMode("customer");
     }
   };
 
@@ -250,13 +263,14 @@ export default function App() {
     setIsMobileSidebarOpen(false);
   };
 
-  const handleTriggerReturn = () => {
+  const handleTriggerReturn = (bookId: string, mode: "customer" | "publisher") => {
     if (!hasPermission("returns.manage")) {
       showNotification("You do not have permission to process returns.", "error");
       return;
     }
 
-    setPreSelectedBookId(undefined);
+    setPreSelectedBookId(bookId);
+    setPreSelectedReturnMode(mode);
     setCurrentPage("returns");
     setIsMobileSidebarOpen(false);
   };
@@ -266,30 +280,67 @@ export default function App() {
   }
 
   const sidebarItems = [
-    { id: "dashboard", label: "Dashboard", icon: TrendingUp },
-    { id: "quick-setup", label: "Quick Setup", icon: Sparkles },
-    { id: "books", label: "Books", icon: BookOpen },
-    { id: "addstock", label: "Stock In", icon: Package },
-    { id: "sales", label: "Sales", icon: ShoppingCart },
-    { id: "returns", label: "Returns", icon: RotateCcw },
-    { id: "transfers", label: "Stock Transfers", icon: ArrowRightLeft },
-    { id: "damage-loss", label: "Damage & Loss", icon: ShieldAlert },
-    { id: "stocklist", label: "Stock List", icon: Eye },
-    { id: "gradesets", label: "Grade Sets", icon: Layers },
-    { id: "subjects", label: "Subjects", icon: Bookmark },
-    { id: "publishers", label: "Publishers", icon: Users },
-    { id: "locations", label: "Warehouses", icon: Building2 },
-    { id: "reports", label: "Reports", icon: FileText },
-    { id: "monthly-records", label: "Monthly Records", icon: CalendarDays },
-    { id: "publisher-stock", label: "Publisher Stock", icon: BarChart3 },
-    { id: "subject-stock", label: "Subject Stock", icon: BarChart3 },
-    { id: "settings", label: "Settings", icon: Settings },
-    { id: "users", label: "User Management", icon: UserCog },
+    { id: "dashboard", label: "Dashboard", icon: TrendingUp, section: "Overview" },
+    { id: "quick-setup", label: "Quick Setup", icon: Sparkles, section: "Overview" },
+    { id: "books", label: "Books", icon: BookOpen, section: "Inventory" },
+    { id: "addstock", label: "Stock In", icon: Package, section: "Inventory" },
+    { id: "stocklist", label: "Stock List", icon: Eye, section: "Inventory" },
+    { id: "gradesets", label: "Grade Sets", icon: Layers, section: "Inventory" },
+    { id: "subjects", label: "Subjects", icon: Bookmark, section: "Inventory" },
+    { id: "categories", label: "Categories", icon: Tags, section: "Inventory" },
+    { id: "sales", label: "Sales", icon: ShoppingCart, section: "Operations" },
+    { id: "returns", label: "Returns", icon: RotateCcw, section: "Operations" },
+    { id: "transfers", label: "Stock Transfers", icon: ArrowRightLeft, section: "Operations" },
+    { id: "damage-loss", label: "Damage & Loss", icon: ShieldAlert, section: "Operations" },
+    { id: "publishers", label: "Publishers", icon: Users, section: "Partners" },
+    { id: "locations", label: "Warehouses", icon: Building2, section: "Partners" },
+    { id: "reports", label: "Reports", icon: FileText, section: "Reports" },
+    { id: "monthly-records", label: "Monthly Records", icon: CalendarDays, section: "Reports" },
+    { id: "publisher-stock", label: "Publisher Stock", icon: BarChart3, section: "Reports" },
+    { id: "subject-stock", label: "Subject Stock", icon: BarChart3, section: "Reports" },
+    { id: "settings", label: "Settings", icon: Settings, section: "Administration" },
+    { id: "users", label: "User Management", icon: UserCog, section: "Administration" },
   ].filter((item) => allowedPages.has(item.id));
+
+  const sidebarSections = ["Overview", "Inventory", "Operations", "Partners", "Reports", "Administration"]
+    .map((section) => ({
+      section,
+      items: sidebarItems.filter((item) => item.section === section),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const roleLabel = user?.role
     ? user.role.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
     : "User";
+
+  const currentPageLabel = sidebarItems.find((item) => item.id === currentPage)?.label || "Dashboard";
+  const normalizedNavigationQuery = navigationQuery.trim().toLowerCase();
+  const navigationSearchResults = sidebarItems
+    .filter((item) =>
+      normalizedNavigationQuery
+        ? `${item.label} ${item.section}`.toLowerCase().includes(normalizedNavigationQuery)
+        : true,
+    )
+    .slice(0, 8);
+
+  const handleNavigationSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = navigationQuery.trim().toLowerCase();
+    if (!query) return;
+
+    const match = sidebarItems.find((item) =>
+      `${item.label} ${item.section}`.toLowerCase().includes(query),
+    );
+
+    if (!match) {
+      showNotification("No matching page found.", "error");
+      return;
+    }
+
+    navigateToPage(match.id);
+    setNavigationQuery("");
+    setIsNavigationSearchOpen(false);
+  };
 
   return (
     <div
@@ -301,155 +352,221 @@ export default function App() {
           type="button"
           aria-label="Close navigation menu"
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-slate-950/35 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/65 backdrop-blur-sm lg:hidden"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-[282px] premium-sidebar flex flex-col justify-between select-none no-print transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 ${
+        className={`final-classic-sidebar final-classic-sidebar-collapsed fixed inset-y-0 left-0 z-50 select-none no-print transition-transform duration-300 ease-out lg:translate-x-0 ${
           isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div>
-          <div className="border-b border-white/60 p-4 dark:border-white/10">
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-blue-300/30 bg-gradient-to-br from-[#0B1F4D] via-[#312E81] to-[#701A75] px-4 py-4 shadow-[0_22px_55px_rgba(30,41,120,0.38)]">
-              <div className="pointer-events-none absolute -left-10 -top-12 h-28 w-28 rounded-full bg-cyan-400/25 blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-14 -right-8 h-32 w-32 rounded-full bg-fuchsia-400/25 blur-2xl" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.14] via-transparent to-white/[0.04]" />
+        <div className="final-sidebar-shell">
+          <div className="final-sidebar-brand">
+            <button
+              type="button"
+              onClick={() => setShowLogoPreview(true)}
+              className="final-sidebar-logo"
+              aria-label="Open IVS Books Management logo"
+            >
+              <LibraryBig className="final-sidebar-logo-fallback" />
+              <img
+                src="/ivs-logo.png"
+                alt=""
+                className="final-sidebar-logo-image"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+            </button>
 
-              <div className="relative z-10 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowLogoPreview(true)}
-                  title="Click to enlarge logo"
-                  className="group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/15 p-1.5 shadow-[0_14px_34px_rgba(56,189,248,0.32)] backdrop-blur-xl transition hover:scale-[1.04] hover:border-white/50 hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                >
-                  <BookOpen className="absolute h-8 w-8 text-white/90" />
-                  <img
-                    src="/ivs-logo.png"
-                    alt="IVS Book Management Logo"
-                    className="relative z-10 h-full w-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.28)]"
-                    onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />
-                  <span className="pointer-events-none absolute inset-x-2 bottom-1.5 z-20 rounded-full bg-slate-950/70 px-2 py-0.5 text-[7px] font-extrabold uppercase tracking-[0.14em] text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
-                    View Logo
-                  </span>
-                </button>
-
-                <div className="min-w-0">
-                  
-                  <h1 className="mt-1 text-[18px] font-display font-extrabold leading-[1.05] tracking-tight !text-white">
-                    <span className="block !text-white">IVS Books</span>
-                    <span className="block !text-white">Management</span>
-                  </h1>
-
-                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 backdrop-blur-xl">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.95)]" />
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.17em] !text-white">
-                      Stock & Sales
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="min-w-0 flex-1">
+              <p className="final-sidebar-brand-title">IVS Books</p>
+              <p className="final-sidebar-brand-subtitle">Management</p>
+              <span className="final-sidebar-brand-badge">Stock &amp; Sales</span>
             </div>
+
           </div>
 
-          <nav className="py-4 px-3 space-y-1 overflow-y-auto max-h-[72vh] premium-scroll">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentPage === item.id;
+          <nav className="final-sidebar-nav premium-scroll" aria-label="Primary navigation">
+            {sidebarSections.map((group) => (
+              <section key={group.section} className="final-sidebar-section">
+                <div className="final-sidebar-section-title">
+                  <span>{group.section}</span>
+                  <i aria-hidden="true" />
+                </div>
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => navigateToPage(item.id)}
-                  className={`premium-nav-item ${isActive ? "premium-nav-item-active" : ""}`}
-                >
-                  <span className={`premium-nav-icon ${isActive ? "premium-nav-icon-active" : ""}`}>
-                    <Icon className="w-4 h-4" />
-                  </span>
+                <div className="final-sidebar-items">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentPage === item.id;
 
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => navigateToPage(item.id)}
+                        className={`final-sidebar-item ${isActive ? "final-sidebar-item-active" : ""}`}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        <span className="final-sidebar-item-icon">
+                          <Icon className="h-[18px] w-[18px]" />
+                        </span>
+                        <span className="final-sidebar-item-label">{item.label}</span>
+                        <span className="final-sidebar-item-glow" aria-hidden="true" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </nav>
-        </div>
 
-        <div className="p-4 border-t border-white/60 dark:border-white/10">
-          <div className="rounded-3xl border border-white/70 dark:border-white/10 bg-white/50 dark:bg-white/[0.04] p-3 shadow-soft">
-            <div className="flex items-center gap-2 text-[10px] text-slate-600 dark:text-slate-300 font-mono font-bold">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_14px_rgba(16,185,129,0.8)]"></span>
-              <span>Local Database Synced</span>
+          <div className="final-sidebar-footer">
+            <div className="final-sidebar-footer-logo">
+              <img src="/ivs-logo.png" alt="" />
             </div>
-
-            <p className="text-[9px] text-slate-400 mt-2">© 2026 IVS Book Management</p>
-
-            <p className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
-              Simple Stock In / Sales System
-            </p>
+            <div className="min-w-0 flex-1">
+              <p>IVS Books Management</p>
+              <span>Version 2.0.0</span>
+            </div>
+            <span className="final-sidebar-online" title="Database synced" />
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 flex flex-col min-h-screen bg-transparent overflow-hidden">
-        <header className="px-3 py-3 sm:px-5 lg:px-8 flex items-center justify-between no-print z-10">
-          <div className="premium-topbar w-full flex items-center justify-between gap-3 px-3 py-3 sm:px-5">
-            <div className="flex min-w-0 items-center gap-3">
+      <main className="final-app-main final-app-main-collapsed flex min-h-screen min-w-0 flex-1 flex-col bg-transparent">
+        <header className="sticky top-0 z-30 px-3 pt-3 no-print sm:px-5 lg:px-6">
+          <div className="final-classic-navbar">
+            <div className="final-navbar-workspace">
               <button
                 type="button"
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white/80 text-slate-700 shadow-sm lg:hidden"
+                className="final-navbar-menu lg:hidden"
                 aria-label="Open navigation menu"
               >
                 <Menu className="h-5 w-5" />
               </button>
 
-              <div className="min-w-0">
-                <p className="text-[9px] sm:text-[10px] font-mono tracking-[0.18em] sm:tracking-[0.22em] uppercase text-blue-600 dark:text-blue-300 font-bold">
-                  Active Workspace
-                </p>
+              <span className="final-navbar-workspace-icon">
+                <LibraryBig className="h-5 w-5" />
+              </span>
 
-                <p className="truncate text-xs sm:text-sm text-slate-900 dark:text-white font-display font-extrabold">
-                  IVS Books Management
-                </p>
+              <div className="min-w-0">
+                <p>Active Workspace</p>
+                <strong>IVS Books Management</strong>
+                <span>{currentPageLabel}</span>
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <div className="final-navbar-actions">
+              <div className="final-navbar-search-control">
+                <button
+                  type="button"
+                  onClick={() => setIsNavigationSearchOpen((value) => !value)}
+                  className={`final-navbar-icon-button ${isNavigationSearchOpen ? "is-active" : ""}`}
+                  title="Search pages"
+                  aria-label="Search pages"
+                  aria-expanded={isNavigationSearchOpen}
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+
+                {isNavigationSearchOpen && (
+                  <>
+                    <button
+                      type="button"
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsNavigationSearchOpen(false)}
+                      aria-label="Close search"
+                    />
+                    <form className="final-navbar-search-popover" onSubmit={handleNavigationSearch}>
+                      <div className="final-search-popover-head">
+                        <div>
+                          <p>Search workspace</p>
+                          <span>Open any page without using the sidebar</span>
+                        </div>
+                        <kbd>Esc</kbd>
+                      </div>
+
+                      <label className="final-search-input-wrap">
+                        <Search className="h-5 w-5" aria-hidden="true" />
+                        <input
+                          autoFocus
+                          value={navigationQuery}
+                          onChange={(event) => setNavigationQuery(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") setIsNavigationSearchOpen(false);
+                          }}
+                          placeholder="Search pages, stock, reports..."
+                          aria-label="Search navigation pages"
+                        />
+                        <kbd>Enter</kbd>
+                      </label>
+
+                      <div className="final-search-results" aria-label="Search results">
+                        {navigationSearchResults.length > 0 ? (
+                          navigationSearchResults.map((item) => {
+                            const ResultIcon = item.icon;
+
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="final-search-result"
+                                onClick={() => {
+                                  navigateToPage(item.id);
+                                  setNavigationQuery("");
+                                  setIsNavigationSearchOpen(false);
+                                }}
+                              >
+                                <span className="final-search-result-icon">
+                                  <ResultIcon className="h-4 w-4" />
+                                </span>
+                                <span className="final-search-result-copy">
+                                  <strong>{item.label}</strong>
+                                  <small>{item.section}</small>
+                                </span>
+                                <span className="final-search-result-arrow" aria-hidden="true">→</span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="final-search-empty">No matching page found.</div>
+                        )}
+                      </div>
+
+                      <div className="final-search-popover-foot">
+                        <span>Click a result or press Enter to open the first match.</span>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="premium-theme-toggle cursor-pointer"
+                className="final-navbar-icon-button"
                 title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                id="theme-toggle-button"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <Moon className="w-4 h-4 text-blue-600" />
-                )}
-
-                <span>{theme === "dark" ? "Light" : "Dark"}</span>
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
 
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowUserMenu((value) => !value)}
-                  className="premium-pill cursor-pointer"
+                  className="final-navbar-user"
                   aria-expanded={showUserMenu}
                 >
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-[10px] font-extrabold text-white">
-                    {user?.name?.slice(0, 1).toUpperCase()}
+                  <span className="final-navbar-avatar">{user?.name?.slice(0, 1).toUpperCase()}</span>
+                  <span className="hidden min-w-0 text-left sm:block">
+                    <strong>{user?.name}</strong>
+                    <small>{roleLabel}</small>
                   </span>
-                  <span className="hidden text-left sm:block">
-                    <span className="block max-w-[150px] truncate text-[10px] font-extrabold text-slate-800 dark:text-white">{user?.name}</span>
-                    <span className="block text-[8px] uppercase tracking-[0.12em] text-slate-400">{roleLabel}</span>
-                  </span>
-                  <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                  <ChevronDown className="h-3.5 w-3.5" />
                 </button>
 
                 {showUserMenu && (
@@ -460,42 +577,38 @@ export default function App() {
                       onClick={() => setShowUserMenu(false)}
                       aria-label="Close account menu"
                     />
-                    <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-72 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
-                      <div className="border-b border-slate-200 p-4 dark:border-white/10">
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-sm font-extrabold text-white">
-                            {user?.name?.slice(0, 1).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-extrabold text-slate-900 dark:text-white">{user?.name}</p>
-                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
-                          </div>
+                    <div className="final-navbar-user-menu">
+                      <div className="final-navbar-user-menu-head">
+                        <div className="final-navbar-user-menu-avatar">
+                          {user?.name?.slice(0, 1).toUpperCase()}
                         </div>
-                        <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-700 dark:bg-blue-400/10 dark:text-blue-200">
-                          <ShieldCheck className="h-3 w-3" /> {roleLabel}
+                        <div className="min-w-0">
+                          <p>{user?.name}</p>
+                          <span>{user?.email}</span>
                         </div>
                       </div>
-                      <div className="p-2">
+                      <div className="final-navbar-role">
+                        <ShieldCheck className="h-3.5 w-3.5" /> {roleLabel}
+                      </div>
+                      <div className="final-navbar-user-menu-actions">
                         <button
                           type="button"
                           onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
-                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
                         >
-                          <KeyRound className="h-4 w-4 text-amber-500" /> Change Password
+                          <KeyRound className="h-4 w-4" /> Change Password
                         </button>
                         {hasPermission("users.manage") && (
                           <button
                             type="button"
                             onClick={() => { setShowUserMenu(false); navigateToPage("users"); }}
-                            className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10"
                           >
-                            <UserCog className="h-4 w-4 text-blue-500" /> User Management
+                            <UserCog className="h-4 w-4" /> User Management
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => void logout()}
-                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-400/10"
+                          className="final-navbar-signout"
                         >
                           <LogOut className="h-4 w-4" /> Sign Out
                         </button>
@@ -508,7 +621,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="flex-1 w-full max-w-[1480px] mx-auto overflow-y-auto overflow-x-hidden px-3 pb-6 pt-2 sm:px-5 sm:pb-8 lg:px-8 lg:pt-4 premium-scroll">
+        <div className="mx-auto w-full max-w-[1660px] flex-1 overflow-x-hidden px-3 pb-8 pt-5 sm:px-5 lg:px-6 lg:pt-6">
           <Suspense fallback={<PageLoading />}>
             {currentPage === "dashboard" && (
               <DashboardView
@@ -564,6 +677,7 @@ export default function App() {
                 onRefresh={loadDatabase}
                 onShowNotification={showNotification}
                 preSelectedBookId={preSelectedBookId}
+                preSelectedReturnMode={preSelectedReturnMode}
                 onClearPreSelectedBookId={() => setPreSelectedBookId(undefined)}
               />
             )}
@@ -589,8 +703,8 @@ export default function App() {
                 data={data}
                 onNavigate={(page) => navigateToPage(page)}
                 onTriggerSell={handleTriggerSell}
-                onTriggerCustomerReturn={handleTriggerReturn}
-                onTriggerPublisherReturn={handleTriggerReturn}
+                onTriggerCustomerReturn={(bookId) => handleTriggerReturn(bookId, "customer")}
+                onTriggerPublisherReturn={(bookId) => handleTriggerReturn(bookId, "publisher")}
                 onTriggerAddStock={handleTriggerAddStock}
                 canAddStock={hasPermission("stock.manage")}
                 canSell={hasPermission("sales.manage")}
@@ -609,6 +723,14 @@ export default function App() {
 
             {currentPage === "subjects" && (
               <SubjectsView
+                data={data}
+                onRefresh={loadDatabase}
+                onShowNotification={showNotification}
+              />
+            )}
+
+            {currentPage === "categories" && (
+              <CategoriesView
                 data={data}
                 onRefresh={loadDatabase}
                 onShowNotification={showNotification}
