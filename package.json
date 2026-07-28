@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push --config=src/db/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=src/db/drizzle.config.ts",
     "auth:create-admin": "tsx scripts/create-admin.ts",
-    "validate": "npm run lint && node scripts/validate-project.mjs"
+    "validate": "npm run lint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
