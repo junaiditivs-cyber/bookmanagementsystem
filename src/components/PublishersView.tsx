@@ -10,7 +10,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { DatabaseSchema, Publisher } from "../types";
+import { apiFetch } from "../api/http";
 
+import ScreenModalPortal from "./ui/ScreenModalPortal";
 interface PublishersViewProps {
   data: DatabaseSchema;
   onRefresh: () => void;
@@ -132,7 +134,7 @@ export default function PublishersView({
         status,
       };
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -179,7 +181,7 @@ export default function PublishersView({
     const newStatus = publisher.status === "active" ? "inactive" : "active";
 
     try {
-      const response = await fetch(`/api/publishers/${publisher.id}`, {
+      const response = await apiFetch(`/api/publishers/${publisher.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -228,7 +230,7 @@ export default function PublishersView({
     }
 
     try {
-      const response = await fetch(`/api/publishers/${publisher.id}`, {
+      const response = await apiFetch(`/api/publishers/${publisher.id}`, {
         method: "DELETE",
       });
 
@@ -277,87 +279,135 @@ export default function PublishersView({
   };
 
   return (
-    <div id="publishers-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-rose-500" />
-            <span>Publishers</span>
-          </h1>
+    <div id="publishers-view" className="space-y-6 pb-12 animate-fadeIn">
+      {/* PAGE HERO */}
+      <section className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.11),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_34%)]" />
 
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            Manage publishers for book registration and Stock In entries.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="flex items-center justify-center gap-2 px-4.5 py-2.5 btn-premium-pink text-white rounded-xl text-xs font-bold transition-all cursor-pointer self-start sm:self-center shadow-sm"
-        >
-          <Plus className="w-4 h-4 text-white" />
-          <span>Add Publisher</span>
-        </button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <Search className="w-4 h-4" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-800 shadow-[0_12px_28px_rgba(180,123,24,0.15)] dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-300">
+              <Users className="h-7 w-7" />
             </div>
 
-            <input
-              type="text"
-              placeholder="Search publisher by name, code, phone, email, or contact person..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="h-10 w-full bg-transparent border-0 text-slate-700 font-bold text-xs focus:ring-0 focus:outline-none placeholder:text-slate-400"
-            />
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-amber-800 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-200">
+                <Users className="h-3.5 w-3.5" />
+                Publisher catalog
+              </div>
 
-            {searchQuery.trim() && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] font-extrabold text-slate-600 hover:bg-slate-100"
-              >
-                Clear
-              </button>
-            )}
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Publishers
+              </h1>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Manage publisher records used across book registration, purchasing, stock intake, and reporting.
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="inline-flex items-center justify-center gap-2 self-start rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 py-3 text-sm font-extrabold text-slate-950 shadow-[0_14px_32px_rgba(180,123,24,0.24)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827] lg:self-center"
+          >
+            <Plus className="h-4 w-4" />
+            Add Publisher
+          </button>
+        </div>
+      </section>
+
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Publishers</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">{data.publishers.length.toLocaleString()}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">All publisher records</p>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200/80 px-4 py-3 rounded-2xl text-xs text-slate-500 flex items-center gap-1.5 font-semibold">
-          <span>Publishers Count:</span>
-          <span className="text-rose-600 font-extrabold font-mono">
-            {filteredPublishers.length}
-          </span>
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Active Publishers</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">
+            {data.publishers.filter((publisher) => publisher.status === "active").length.toLocaleString()}
+          </p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Available for new books</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Linked Books</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">{data.books.length.toLocaleString()}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Titles assigned to publishers</p>
         </div>
       </div>
 
-      <div className="glass-panel rounded-2xl border border-white/60 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-100 font-bold">
+      {/* SEARCH */}
+      <div className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+            <Search className="h-5 w-5" />
+          </div>
+
+          <input
+            type="text"
+            placeholder="Search by name, code, phone, email, or contact person..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="h-11 w-full border-0 bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-white"
+          />
+
+          {searchQuery.trim() && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* PUBLISHERS TABLE */}
+      <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-[#10263c]">
+        <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-white/10 dark:bg-[#10263c] sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
+            <h2 className="font-display text-sm font-extrabold text-slate-900 dark:text-white">
+              Publisher Directory
+            </h2>
+            <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              Contact details, linked books, stock totals, status, and actions.
+            </p>
+          </div>
+
+          <span className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-extrabold text-slate-500 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300">
+            Total records: {filteredPublishers.length}
+          </span>
+        </div>
+
+        <div className="overflow-x-auto premium-scroll">
+          <table className="min-w-[980px] w-full text-left">
+            <thead className="bg-slate-950 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-300">
               <tr>
-                <th className="px-5 py-3.5">Code</th>
-                <th className="px-5 py-3.5">Publisher Name</th>
-                <th className="px-5 py-3.5">Contact</th>
-                <th className="px-5 py-3.5 text-center">Books</th>
-                <th className="px-5 py-3.5 text-center">Stock</th>
-                <th className="px-5 py-3.5 text-center">Status</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-5 py-4">Code</th>
+                <th className="px-5 py-4">Publisher</th>
+                <th className="px-5 py-4">Contact</th>
+                <th className="px-5 py-4 text-center">Books</th>
+                <th className="px-5 py-4 text-center">Stock</th>
+                <th className="px-5 py-4 text-center">Status</th>
+                <th className="px-5 py-4 text-right">Actions</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
               {filteredPublishers.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-10 text-slate-400 font-mono"
-                  >
-                    No publishers found.
+                  <td colSpan={7} className="px-5 py-16 text-center">
+                    <Users className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
+                    <p className="mt-3 text-sm font-extrabold text-slate-700 dark:text-slate-200">
+                      No publishers found
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Try changing the search term or add a new publisher.
+                    </p>
                   </td>
                 </tr>
               ) : (
@@ -366,94 +416,103 @@ export default function PublishersView({
                   const stockCount = getPublisherStockCount(publisher.id);
 
                   return (
-                    <tr key={publisher.id} className="hover:bg-white/40 transition-colors">
-                      <td className="px-5 py-4 font-mono font-bold text-slate-400 text-[10px]">
-                        {publisher.publisher_number}
+                    <tr
+                      key={publisher.id}
+                      className="transition hover:bg-amber-50/40 dark:hover:bg-amber-300/[0.04]"
+                    >
+                      <td className="px-5 py-4">
+                        <span className="inline-flex rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[10px] font-extrabold text-slate-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300">
+                          {publisher.publisher_number}
+                        </span>
                       </td>
 
                       <td className="px-5 py-4">
-                        <p className="font-bold text-slate-800">
+                        <p className="font-extrabold text-slate-900 dark:text-white">
                           {publisher.publisher_name}
                         </p>
 
                         {publisher.address && (
-                          <p className="mt-0.5 text-[10px] text-slate-400 font-semibold max-w-[260px] truncate">
+                          <p className="mt-1 max-w-[280px] truncate text-[10px] font-medium text-slate-500 dark:text-slate-400">
                             {publisher.address}
                           </p>
                         )}
                       </td>
 
                       <td className="px-5 py-4">
-                        <p className="text-slate-600 font-semibold">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
                           {publisher.contact_person || "-"}
                         </p>
-
-                        <p className="text-[10px] text-slate-400 font-bold mt-0.5">
-                          {publisher.phone || ""}
+                        <p className="mt-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                          {publisher.phone || "No phone"}
                         </p>
-
-                        <p className="text-[10px] text-slate-400 font-bold mt-0.5">
-                          {publisher.email || ""}
+                        <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                          {publisher.email || "No email"}
                         </p>
                       </td>
 
-                      <td className="px-5 py-4 text-center font-mono font-extrabold text-slate-700">
-                        {bookCount}
+                      <td className="px-5 py-4 text-center">
+                        <span className="font-mono text-sm font-extrabold text-slate-800 dark:text-white">
+                          {bookCount}
+                        </span>
                       </td>
 
-                      <td className="px-5 py-4 text-center font-mono font-extrabold text-blue-600">
-                        {stockCount}
+                      <td className="px-5 py-4 text-center">
+                        <span className="font-mono text-sm font-extrabold text-blue-700 dark:text-blue-200">
+                          {stockCount.toLocaleString()}
+                        </span>
                       </td>
 
                       <td className="px-5 py-4 text-center">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-extrabold ${
                             publisher.status === "active"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                              : "bg-rose-50 text-rose-600 border-rose-200"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-200"
+                              : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-300/20 dark:bg-rose-300/10 dark:text-rose-200"
                           }`}
                         >
                           {publisher.status === "active" ? "Active" : "Inactive"}
                         </span>
                       </td>
 
-                      <td className="px-5 py-4 text-right space-x-1.5 no-print">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(publisher)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors inline-flex cursor-pointer border border-transparent"
-                          title="Edit Publisher"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-1.5 no-print">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(publisher)}
+                            className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300 dark:hover:border-blue-300/30 dark:hover:bg-blue-300/10 dark:hover:text-blue-200"
+                            title="Edit Publisher"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
 
-                        {bookCount === 0 && stockCount === 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePublisher(publisher)}
-                            className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors inline-flex cursor-pointer border border-transparent"
-                            title="Delete Publisher"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => toggleDeactivate(publisher)}
-                            className={`p-1.5 rounded-lg transition-colors inline-flex cursor-pointer border border-transparent ${
-                              publisher.status === "active"
-                                ? "text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                                : "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
-                            }`}
-                            title={
-                              publisher.status === "active"
-                                ? "Deactivate Publisher"
-                                : "Activate Publisher"
-                            }
-                          >
-                            <ShieldAlert className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                          {bookCount === 0 && stockCount === 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePublisher(publisher)}
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50 dark:border-rose-300/20 dark:bg-[#10263c] dark:text-rose-200 dark:hover:bg-rose-300/10"
+                              title="Delete Publisher"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => toggleDeactivate(publisher)}
+                              className={`grid h-9 w-9 place-items-center rounded-xl border transition ${
+                                publisher.status === "active"
+                                  ? "border-rose-200 bg-white text-rose-600 hover:bg-rose-50 dark:border-rose-300/20 dark:bg-[#10263c] dark:text-rose-200 dark:hover:bg-rose-300/10"
+                                  : "border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50 dark:border-emerald-300/20 dark:bg-[#10263c] dark:text-emerald-200 dark:hover:bg-emerald-300/10"
+                              }`}
+                              title={
+                                publisher.status === "active"
+                                  ? "Deactivate Publisher"
+                                  : "Activate Publisher"
+                              }
+                            >
+                              <ShieldAlert className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -462,146 +521,156 @@ export default function PublishersView({
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
+      {/* ADD / EDIT MODAL */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel border border-white/60 rounded-2xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl bg-white">
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-slate-800">
-                  {editingPublisher
-                    ? `Edit Publisher: ${editingPublisher.publisher_number}`
-                    : "Add Publisher"}
-                </h2>
+        <ScreenModalPortal>
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[2rem] border border-white/20 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.45)] dark:bg-slate-950">
+            <div className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 p-6 dark:border-white/10">
+              <div className="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-amber-400/10 blur-3xl" />
 
-                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
-                  Publisher will be used in Books and Stock In pages.
-                </p>
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="flex gap-3">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-amber-300/25 bg-amber-300/10 text-amber-200">
+                    {editingPublisher ? (
+                      <Edit2 className="h-5 w-5" />
+                    ) : (
+                      <Plus className="h-5 w-5" />
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-amber-200/80">
+                      Publisher Record
+                    </p>
+                    <h2 className="mt-1 font-display text-xl font-extrabold text-white">
+                      {editingPublisher
+                        ? `Edit ${editingPublisher.publisher_number}`
+                        : "Add Publisher"}
+                    </h2>
+                    <p className="mt-1 text-xs text-slate-300">
+                      Used in Books, Stock In, and publisher reporting.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeForm}
+                  disabled={loading}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-300 transition hover:bg-white/[0.12] hover:text-white disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={closeForm}
-                disabled={loading}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-6 space-y-4 flex-1 overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+            <form onSubmit={handleSave} className="space-y-5 p-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Publisher Name *
-                  </label>
-
+                  </span>
                   <input
                     type="text"
                     required
                     value={publisherName}
                     onChange={(event) => setPublisherName(event.target.value)}
                     placeholder="Example: Oxford University Press"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                     autoFocus
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Contact Person
-                  </label>
-
+                  </span>
                   <input
                     type="text"
                     value={contactPerson}
                     onChange={(event) => setContactPerson(event.target.value)}
                     placeholder="Example: Junaid"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Phone
-                  </label>
-
+                  </span>
                   <input
                     type="text"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                     placeholder="Example: 0300 0000000"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   />
-                </div>
+                </label>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Email
-                  </label>
-
+                  </span>
                   <input
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Example: sales@example.com"
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   />
-                </div>
+                </label>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Address
-                  </label>
-
+                  </span>
                   <textarea
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
-                    placeholder="Office / dispatch address"
-                    rows={2}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none resize-none"
+                    placeholder="Office or dispatch address"
+                    rows={3}
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Credit Days
-                  </label>
-
+                  </span>
                   <input
                     type="number"
                     min={0}
                     value={creditDays}
                     onChange={(event) => setCreditDays(Number(event.target.value))}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Status
-                  </label>
-
+                  </span>
                   <select
                     value={status}
                     onChange={(event) =>
                       setStatus(event.target.value as "active" | "inactive")
                     }
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none cursor-pointer"
+                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
-                </div>
+                </label>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex justify-end gap-2 text-xs font-bold">
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-white/10 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={closeForm}
                   disabled={loading}
-                  className="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl cursor-pointer disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-200 dark:hover:bg-white/[0.08]"
                 >
                   Cancel
                 </button>
@@ -609,15 +678,15 @@ export default function PublishersView({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 btn-premium-pink text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-6 py-3 text-sm font-extrabold text-slate-950 shadow-[0_12px_30px_rgba(245,158,11,0.25)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                 >
-                  {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{loading ? "Saving..." : "Save Publisher"}</span>
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {loading ? "Saving..." : "Save Publisher"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
     </div>
   );

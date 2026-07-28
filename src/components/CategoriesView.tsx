@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { DatabaseSchema, Subject, Book } from "../types";
+import { DatabaseSchema, Category, Book } from "../types";
 import { exportToPDF } from "../utils/pdfExport";
 import { 
-  Bookmark, Plus, Search, Edit2, ShieldAlert, X, RefreshCw, BookOpen, Package, 
+  Tags, Plus, Search, Edit2, ShieldAlert, X, RefreshCw, BookOpen, Package, 
   ArrowLeft, Download, Printer, CheckCircle, AlertTriangle, PlayCircle, Eye, Trash2
 } from "lucide-react";
 import { apiFetch } from "../api/http";
 
 import ScreenModalPortal from "./ui/ScreenModalPortal";
-interface SubjectsViewProps {
+interface CategoriesViewProps {
   data: DatabaseSchema;
   onRefresh: () => void;
   onShowNotification: (msg: string, type: "success" | "error") => void;
@@ -23,16 +23,16 @@ async function getApiErrorMessage(response: Response, fallback: string): Promise
   }
 }
 
-export default function SubjectsView({ data, onRefresh, onShowNotification }: SubjectsViewProps) {
+export default function CategoriesView({ data, onRefresh, onShowNotification }: CategoriesViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [subjectName, setSubjectName] = useState("");
-  const [subjectStatus, setSubjectStatus] = useState<"active" | "inactive">("active");
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryStatus, setCategoryStatus] = useState<"active" | "inactive">("active");
   const [saving, setSaving] = useState(false);
 
   // Drilldown states
-  const [drilldownSubject, setDrilldownSubject] = useState<Subject | null>(null);
+  const [drilldownCategory, setDrilldownCategory] = useState<Category | null>(null);
 
   // --- DETAILED TRANSACTION COMPILATIONS PER BOOK ---
   const bookTransactionMetrics = useMemo(() => {
@@ -107,8 +107,8 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
     return metrics;
   }, [data.books, data.locations, data.stock_balances, data.sale_items, data.customer_returns, data.publisher_returns]);
 
-  // --- STATS PER SUBJECT ---
-  const subjectStats = useMemo(() => {
+  // --- STATS PER CATEGORY ---
+  const categoryStats = useMemo(() => {
     const stats = new Map<string, {
       booksCount: number;
       totalStock: number;
@@ -118,7 +118,7 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
       totalValueCost: number;
     }>();
 
-    data.subjects.forEach(s => {
+    data.categories.forEach(s => {
       stats.set(s.id, {
         booksCount: 0,
         totalStock: 0,
@@ -141,7 +141,7 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
         valueCost: 0
       };
 
-      const sStat = stats.get(b.subject_id);
+      const sStat = stats.get(b.category_id);
       if (sStat) {
         sStat.booksCount += 1;
         sStat.totalStock += bMetrics.totalStock;
@@ -153,44 +153,44 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
     });
 
     return stats;
-  }, [data.subjects, data.books, bookTransactionMetrics]);
+  }, [data.categories, data.books, bookTransactionMetrics]);
 
   const handleOpenAdd = () => {
-    setEditingSubject(null);
-    setSubjectName("");
-    setSubjectStatus("active");
+    setEditingCategory(null);
+    setCategoryName("");
+    setCategoryStatus("active");
     setIsFormOpen(true);
   };
 
-  const handleOpenEdit = (subject: Subject) => {
-    setEditingSubject(subject);
-    setSubjectName(subject.name);
-    setSubjectStatus(subject.status);
+  const handleOpenEdit = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryName(category.name);
+    setCategoryStatus(category.status);
     setIsFormOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subjectName.trim()) {
-      onShowNotification("Subject Name is required.", "error");
+    if (!categoryName.trim()) {
+      onShowNotification("Category Name is required.", "error");
       return;
     }
 
     setSaving(true);
     try {
-      const url = editingSubject ? `/api/subjects/${editingSubject.id}` : `/api/subjects`;
-      const method = editingSubject ? "PUT" : "POST";
+      const url = editingCategory ? `/api/categories/${editingCategory.id}` : `/api/categories`;
+      const method = editingCategory ? "PUT" : "POST";
 
       const res = await apiFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: subjectName, status: subjectStatus })
+        body: JSON.stringify({ name: categoryName, status: categoryStatus })
       });
 
-      if (!res.ok) throw new Error(await getApiErrorMessage(res, "Failed to save subject record."));
+      if (!res.ok) throw new Error(await getApiErrorMessage(res, "Failed to save category record."));
 
       onShowNotification(
-        editingSubject ? "Subject updated successfully!" : "New subject registered successfully!", 
+        editingCategory ? "Category updated successfully!" : "New category registered successfully!", 
         "success"
       );
       setIsFormOpen(false);
@@ -202,46 +202,46 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
     }
   };
 
-  const toggleDeactivate = async (subject: Subject) => {
-    const newStatus = subject.status === "active" ? "inactive" : "active";
+  const toggleDeactivate = async (category: Category) => {
+    const newStatus = category.status === "active" ? "inactive" : "active";
     try {
-      const res = await apiFetch(`/api/subjects/${subject.id}`, {
+      const res = await apiFetch(`/api/categories/${category.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: subject.name, status: newStatus })
+        body: JSON.stringify({ name: category.name, status: newStatus })
       });
-      if (!res.ok) throw new Error(await getApiErrorMessage(res, "Failed to change subject status."));
-      onShowNotification(`Subject successfully ${newStatus === "active" ? "activated" : "deactivated"}.`, "success");
+      if (!res.ok) throw new Error(await getApiErrorMessage(res, "Failed to change category status."));
+      onShowNotification(`Category successfully ${newStatus === "active" ? "activated" : "deactivated"}.`, "success");
       onRefresh();
     } catch (err: any) {
       onShowNotification(err.message, "error");
     }
   };
 
-  const handleDeleteSubject = async (subId: string) => {
-    if (!window.confirm("Are you sure you want to permanently delete this subject? This action cannot be undone.")) return;
+  const handleDeleteCategory = async (subId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this category? This action cannot be undone.")) return;
     try {
-      const res = await apiFetch(`/api/subjects/${subId}`, {
+      const res = await apiFetch(`/api/categories/${subId}`, {
         method: "DELETE"
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to delete subject.");
+        throw new Error(err.error || "Failed to delete category.");
       }
-      onShowNotification("Subject deleted successfully!", "success");
+      onShowNotification("Category deleted successfully!", "success");
       onRefresh();
     } catch (err: any) {
       onShowNotification(err.message, "error");
     }
   };
 
-  // PDF Export of Subject Overview
+  // PDF Export of Category Overview
   const handleExportPDFAll = () => {
-    const title = "Subjects Curriculum Audit & Valuation Ledger";
+    const title = "Categories Inventory Audit & Valuation Ledger";
     const subtitle = `Generated Date: ${new Date().toLocaleDateString()}`;
 
     const cols = [
-      { header: "Subject Name", dataKey: "name" },
+      { header: "Category Name", dataKey: "name" },
       { header: "Status", dataKey: "status" },
       { header: "Books Count", dataKey: "booksCount" },
       { header: "Stock Copies", dataKey: "stock" },
@@ -251,8 +251,8 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
       { header: "Cost Valuation", dataKey: "value" }
     ];
 
-    const rows = filteredSubjects.map(s => {
-      const stats = subjectStats.get(s.id) || { booksCount: 0, totalStock: 0, soldQty: 0, customerReturnQty: 0, publisherReturnQty: 0, totalValueCost: 0 };
+    const rows = filteredCategories.map(s => {
+      const stats = categoryStats.get(s.id) || { booksCount: 0, totalStock: 0, soldQty: 0, customerReturnQty: 0, publisherReturnQty: 0, totalValueCost: 0 };
       return {
         name: s.name,
         status: s.status.toUpperCase(),
@@ -271,168 +271,168 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
       columns: cols,
       rows,
       summaryData: [
-        { label: "Total Subjects", value: filteredSubjects.length },
-        { label: "Active Subjects", value: filteredSubjects.filter(s => s.status === "active").length }
+        { label: "Total Categories", value: filteredCategories.length },
+        { label: "Active Categories", value: filteredCategories.filter(s => s.status === "active").length }
       ],
-      fileName: "Subjects_Directory_Report.pdf"
+      fileName: "Categories_Directory_Report.pdf"
     });
   };
 
-  const filteredSubjects = data.subjects.filter(s => 
+  const filteredCategories = data.categories.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Drilldown calculations
   const drilldownBooks = useMemo(() => {
-    if (!drilldownSubject) return [];
-    return data.books.filter(b => b.subject_id === drilldownSubject.id);
-  }, [drilldownSubject, data.books]);
+    if (!drilldownCategory) return [];
+    return data.books.filter(b => b.category_id === drilldownCategory.id);
+  }, [drilldownCategory, data.books]);
 
   return (
-    <div id="subjects-view" className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100">
+    <div id="categories-view" className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100">
 
       <style>{`
-        #subjects-view .subjects-readable {
+        #categories-view .categories-readable {
           color: #0f172a !important;
         }
 
-        #subjects-view .subjects-muted {
+        #categories-view .categories-muted {
           color: #475569 !important;
         }
 
-        #subjects-view .subjects-panel {
+        #categories-view .categories-panel {
           background-color: #ffffff !important;
           border-color: #cbd5e1 !important;
           box-shadow: 0 20px 55px rgba(15, 23, 42, 0.12) !important;
         }
 
-        #subjects-view .subjects-soft-panel {
+        #categories-view .categories-soft-panel {
           background-color: #f8fafc !important;
           border-color: #e2e8f0 !important;
         }
 
-        #subjects-view .subjects-control {
+        #categories-view .categories-control {
           background-color: #ffffff !important;
           border-color: #cbd5e1 !important;
           color: #0f172a !important;
         }
 
-        #subjects-view .subjects-control::placeholder {
+        #categories-view .categories-control::placeholder {
           color: #64748b !important;
           opacity: 1 !important;
         }
 
-        #subjects-view table {
+        #categories-view table {
           color: #334155 !important;
         }
 
-        #subjects-view thead {
+        #categories-view thead {
           background-color: #f1f5f9 !important;
           color: #475569 !important;
           border-color: #cbd5e1 !important;
         }
 
-        #subjects-view tbody {
+        #categories-view tbody {
           background-color: #ffffff !important;
         }
 
-        #subjects-view tbody tr {
+        #categories-view tbody tr {
           background-color: #ffffff !important;
           border-color: #e2e8f0 !important;
         }
 
-        #subjects-view tbody tr:hover {
+        #categories-view tbody tr:hover {
           background-color: #fffbeb !important;
         }
 
-        #subjects-view td,
-        #subjects-view th {
+        #categories-view td,
+        #categories-view th {
           border-color: #e2e8f0 !important;
         }
 
-        html.dark #subjects-view .subjects-readable {
+        html.dark #categories-view .categories-readable {
           color: #f8fafc !important;
         }
 
-        html.dark #subjects-view .subjects-muted {
+        html.dark #categories-view .categories-muted {
           color: #cbd5e1 !important;
         }
 
-        html.dark #subjects-view .subjects-panel {
+        html.dark #categories-view .categories-panel {
           background-color: #081827 !important;
           border-color: rgba(252, 211, 77, 0.22) !important;
           box-shadow: 0 26px 78px rgba(0, 0, 0, 0.44) !important;
         }
 
-        html.dark #subjects-view .subjects-soft-panel {
+        html.dark #categories-view .categories-soft-panel {
           background-color: #10263c !important;
           border-color: rgba(255, 255, 255, 0.10) !important;
         }
 
-        html.dark #subjects-view .subjects-control {
+        html.dark #categories-view .categories-control {
           background-color: #10263c !important;
           border-color: rgba(255, 255, 255, 0.16) !important;
           color: #ffffff !important;
         }
 
-        html.dark #subjects-view .subjects-control::placeholder {
+        html.dark #categories-view .categories-control::placeholder {
           color: #94a3b8 !important;
           opacity: 1 !important;
         }
 
-        html.dark #subjects-view option {
+        html.dark #categories-view option {
           background-color: #0f2236 !important;
           color: #ffffff !important;
         }
 
-        html.dark #subjects-view table {
+        html.dark #categories-view table {
           color: #e2e8f0 !important;
         }
 
-        html.dark #subjects-view thead {
+        html.dark #categories-view thead {
           background-color: #10263c !important;
           color: #cbd5e1 !important;
           border-color: rgba(255, 255, 255, 0.12) !important;
         }
 
-        html.dark #subjects-view tbody {
+        html.dark #categories-view tbody {
           background-color: #081827 !important;
         }
 
-        html.dark #subjects-view tbody tr {
+        html.dark #categories-view tbody tr {
           background-color: #081827 !important;
           border-color: rgba(255, 255, 255, 0.10) !important;
         }
 
-        html.dark #subjects-view tbody tr:hover {
+        html.dark #categories-view tbody tr:hover {
           background-color: #10263c !important;
         }
 
-        html.dark #subjects-view td,
-        html.dark #subjects-view th {
+        html.dark #categories-view td,
+        html.dark #categories-view th {
           border-color: rgba(255, 255, 255, 0.10) !important;
         }
 
         @media print {
-          #subjects-view,
-          #subjects-view .subjects-panel,
-          #subjects-view .subjects-soft-panel,
-          #subjects-view table,
-          #subjects-view thead,
-          #subjects-view tbody,
-          #subjects-view tbody tr {
+          #categories-view,
+          #categories-view .categories-panel,
+          #categories-view .categories-soft-panel,
+          #categories-view table,
+          #categories-view thead,
+          #categories-view tbody,
+          #categories-view tbody tr {
             background: #ffffff !important;
             color: #000000 !important;
             box-shadow: none !important;
           }
 
-          #subjects-view td,
-          #subjects-view th,
-          #subjects-view p,
-          #subjects-view span,
-          #subjects-view h1,
-          #subjects-view h2,
-          #subjects-view h3 {
+          #categories-view td,
+          #categories-view th,
+          #categories-view p,
+          #categories-view span,
+          #categories-view h1,
+          #categories-view h2,
+          #categories-view h3 {
             color: #000000 !important;
             border-color: #cbd5e1 !important;
           }
@@ -441,17 +441,17 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
 
       
       {/* 1. MASTER VIEW */}
-      {!drilldownSubject ? (
+      {!drilldownCategory ? (
         <>
           {/* HEADER */}
           <div className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-8 sm:py-7">
             <div>
-              <h1 className="subjects-readable flex items-center gap-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
-                <Bookmark className="h-6 w-6 text-amber-700 dark:text-amber-300" />
-                <span>Curriculum Subjects Directory</span>
+              <h1 className="categories-readable flex items-center gap-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                <Tags className="h-6 w-6 text-amber-700 dark:text-amber-300" />
+                <span>Inventory Categories Directory</span>
               </h1>
-              <p className="subjects-muted mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300 sm:text-sm">
-                Configure school curriculum subjects to segment books, check active stock, and print curriculum ledgers.
+              <p className="categories-muted mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300 sm:text-sm">
+                Configure school curriculum categories to segment books, check active stock, and print curriculum ledgers.
               </p>
             </div>
 
@@ -468,31 +468,31 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 py-3 text-xs font-extrabold text-slate-950 shadow-[0_12px_28px_rgba(180,123,24,0.22)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827]"
               >
                 <Plus className="h-4 w-4" />
-                <span>Add New Subject</span>
+                <span>Add New Category</span>
               </button>
             </div>
           </div>
 
           {/* FILTER & SEARCH */}
-          <div className="subjects-panel flex items-center gap-3 rounded-[2rem] border border-slate-300 bg-white px-5 py-4 text-xs shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+          <div className="categories-panel flex items-center gap-3 rounded-[2rem] border border-slate-300 bg-white px-5 py-4 text-xs shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
             <Search className="h-5 w-5 text-amber-700 dark:text-amber-300" />
             <input
               type="text"
-              placeholder="Search subjects by name (e.g. Physics, Urdu)..."
+              placeholder="Search categories by name (e.g. Physics, Urdu)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full border-0 bg-transparent text-sm font-bold text-slate-950 outline-none placeholder:text-slate-500 focus:ring-0 dark:text-white dark:placeholder:text-slate-400"
             />
           </div>
 
-          {/* SUBJECTS LIST TABLE */}
-          <div className="subjects-panel overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+          {/* CATEGORIES LIST TABLE */}
+          <div className="categories-panel overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1050px] text-left text-xs text-slate-700 dark:text-slate-200">
                 <thead className="border-b border-slate-200 bg-slate-100 text-[9px] font-extrabold uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300">
                   <tr>
-                    <th className="px-5 py-3">Subject ID</th>
-                    <th className="px-5 py-3">Subject Name</th>
+                    <th className="px-5 py-3">Category ID</th>
+                    <th className="px-5 py-3">Category Name</th>
                     <th className="px-5 py-3 text-center">Books Count</th>
                     <th className="px-5 py-3 text-center">In Stock</th>
                     <th className="px-5 py-3 text-center">Sold Qty</th>
@@ -502,15 +502,15 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white dark:divide-white/10 dark:bg-[#081827]">
-                  {filteredSubjects.length === 0 ? (
+                  {filteredCategories.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="subjects-muted py-12 text-center font-mono font-semibold text-slate-600 dark:text-slate-400">
-                        No subjects registered yet. Click "Add New Subject" to organize syllabus records.
+                      <td colSpan={8} className="categories-muted py-12 text-center font-mono font-semibold text-slate-600 dark:text-slate-400">
+                        No categories registered yet. Click "Add New Category" to organize syllabus records.
                       </td>
                     </tr>
                   ) : (
-                    filteredSubjects.map(subject => {
-                      const stats = subjectStats.get(subject.id) || {
+                    filteredCategories.map(category => {
+                      const stats = categoryStats.get(category.id) || {
                         booksCount: 0,
                         totalStock: 0,
                         soldQty: 0,
@@ -519,10 +519,10 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                         totalValueCost: 0
                       };
                       return (
-                        <tr key={subject.id} className="bg-white transition-colors hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c]">
-                          <td className="subjects-muted px-5 py-4 font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">{subject.id}</td>
+                        <tr key={category.id} className="bg-white transition-colors hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c]">
+                          <td className="categories-muted px-5 py-4 font-mono text-[10px] font-bold text-slate-600 dark:text-slate-400">{category.id}</td>
                           <td className="px-5 py-4">
-                            <span className="subjects-readable text-xs font-extrabold text-slate-950 dark:text-white sm:text-sm">{subject.name}</span>
+                            <span className="categories-readable text-xs font-extrabold text-slate-950 dark:text-white sm:text-sm">{category.name}</span>
                           </td>
                           <td className="px-5 py-4 text-center">
                             <span className="inline-flex rounded-xl border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold text-slate-700 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200">
@@ -534,54 +534,54 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                               {stats.totalStock.toLocaleString()} units
                             </span>
                           </td>
-                          <td className="subjects-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">
+                          <td className="categories-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">
                             {stats.soldQty.toLocaleString()} units
                           </td>
-                          <td className="subjects-readable px-5 py-4 text-right font-mono font-extrabold text-slate-950 dark:text-white">
+                          <td className="categories-readable px-5 py-4 text-right font-mono font-extrabold text-slate-950 dark:text-white">
                             PKR {stats.totalValueCost.toLocaleString()}
                           </td>
                           <td className="px-5 py-4 text-center">
                             <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-[9px] font-bold border ${
-                              subject.status === "active" 
+                              category.status === "active" 
                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
                                 : "bg-rose-50 text-rose-600 border-rose-100"
                             }`}>
-                              {subject.status.toUpperCase()}
+                              {category.status.toUpperCase()}
                             </span>
                           </td>
                           <td className="px-5 py-4 text-right space-x-1.5">
                             <button
-                              onClick={() => setDrilldownSubject(subject)}
+                              onClick={() => setDrilldownCategory(category)}
                               className="inline-flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-extrabold text-amber-800 transition hover:bg-amber-100 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200"
-                              title="View Subject Stock"
+                              title="View Category Stock"
                             >
                               <Eye className="w-3 h-3" />
                               <span>View Stock</span>
                             </button>
                             <button 
-                              onClick={() => handleOpenEdit(subject)} 
+                              onClick={() => handleOpenEdit(category)} 
                               className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
-                              title="Edit Subject"
+                              title="Edit Category"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             {stats.booksCount === 0 ? (
                               <button 
-                                onClick={() => handleDeleteSubject(subject.id)} 
+                                onClick={() => handleDeleteCategory(category.id)} 
                                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-700 shadow-sm transition hover:bg-rose-100 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
-                                title="Delete Subject"
+                                title="Delete Category"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             ) : (
                               <button 
-                                onClick={() => toggleDeactivate(subject)} 
+                                onClick={() => toggleDeactivate(category)} 
                                 className={`p-1.5 rounded-lg inline-flex transition-colors cursor-pointer border border-transparent ${
-                                  subject.status === "active"
+                                  category.status === "active"
                                     ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50/50"
                                     : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/50"
                                 }`}
-                                title={subject.status === "active" ? "Deactivate Subject" : "Activate Subject"}
+                                title={category.status === "active" ? "Deactivate Category" : "Activate Category"}
                               >
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </button>
@@ -598,24 +598,24 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
         </>
       ) : (
         
-        /* 2. SUBJECT DRILLDOWN VIEW */
+        /* 2. CATEGORY DRILLDOWN VIEW */
         <div className="space-y-6 animate-fadeIn">
           
           {/* HEADER BACK BUTTON */}
           <div className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-8 sm:py-7">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setDrilldownSubject(null)}
+                onClick={() => setDrilldownCategory(null)}
                 className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-800 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <h1 className="subjects-readable flex items-center gap-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
-                  <Bookmark className="h-6 w-6 text-amber-700 dark:text-amber-300" />
-                  <span>Subject Inventory: {drilldownSubject.name}</span>
+                <h1 className="categories-readable flex items-center gap-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                  <Tags className="h-6 w-6 text-amber-700 dark:text-amber-300" />
+                  <span>Category Inventory: {drilldownCategory.name}</span>
                 </h1>
-                <p className="subjects-muted mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300 sm:text-sm">
+                <p className="categories-muted mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300 sm:text-sm">
                   Detailed ledger breakdown of syllabus books, individual location balances, and total sales pipeline.
                 </p>
               </div>
@@ -623,7 +623,7 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
 
             <button
               onClick={() => {
-                const title = `Subject Inventory Detail Ledger - ${drilldownSubject.name}`;
+                const title = `Category Inventory Detail Ledger - ${drilldownCategory.name}`;
                 const cols = [
                   { header: "Book Title", dataKey: "title" },
                   { header: "Publisher", dataKey: "pub" },
@@ -655,14 +655,14 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                 });
                 exportToPDF({
                   title,
-                  subtitle: `Subject: ${drilldownSubject.name} Ledger Details`,
+                  subtitle: `Category: ${drilldownCategory.name} Ledger Details`,
                   columns: cols,
                   rows,
                   summaryData: [
                     { label: "Book Titles Count", value: drilldownBooks.length },
                     { label: "Aggregate Copies", value: drilldownBooks.reduce((sum, b) => sum + (bookTransactionMetrics.get(b.id)?.totalStock || 0), 0) }
                   ],
-                  fileName: `Subject_${drilldownSubject.name.replace(/\s+/g, "_")}_Details.pdf`
+                  fileName: `Category_${drilldownCategory.name.replace(/\s+/g, "_")}_Details.pdf`
                 });
               }}
               className="inline-flex items-center justify-center gap-2 self-start rounded-2xl border border-slate-300 bg-white px-4 py-3 text-xs font-extrabold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-100 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200 sm:self-auto"
@@ -674,41 +674,41 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
 
           {/* SUMMARY CARDS GRID */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="subjects-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
-              <p className="subjects-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Registered Titles</p>
-              <p className="subjects-readable mt-2 font-display text-2xl font-extrabold text-slate-950 dark:text-white">{drilldownBooks.length}</p>
-              <div className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Under subject {drilldownSubject.name}</div>
+            <div className="categories-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+              <p className="categories-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Registered Titles</p>
+              <p className="categories-readable mt-2 font-display text-2xl font-extrabold text-slate-950 dark:text-white">{drilldownBooks.length}</p>
+              <div className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Under category {drilldownCategory.name}</div>
             </div>
-            <div className="subjects-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
-              <p className="subjects-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Current Stock Available</p>
+            <div className="categories-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+              <p className="categories-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Current Stock Available</p>
               <p className="mt-2 font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
                 {drilldownBooks.reduce((sum, b) => sum + (bookTransactionMetrics.get(b.id)?.totalStock || 0), 0).toLocaleString()}
               </p>
-              <div className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Combined locations inventory</div>
+              <div className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Combined locations inventory</div>
             </div>
-            <div className="subjects-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
-              <p className="subjects-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Accumulated Sales</p>
+            <div className="categories-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+              <p className="categories-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Accumulated Sales</p>
               <p className="mt-2 font-mono text-2xl font-extrabold text-blue-700 dark:text-blue-300">
                 {drilldownBooks.reduce((sum, b) => sum + (bookTransactionMetrics.get(b.id)?.soldQty || 0), 0).toLocaleString()}
               </p>
-              <div className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Total sold copies</div>
+              <div className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Total sold copies</div>
             </div>
-            <div className="subjects-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
-              <p className="subjects-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Asset Valuation</p>
-              <p className="subjects-readable mt-2 truncate font-mono text-base font-extrabold text-slate-950 dark:text-white">
+            <div className="categories-panel rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+              <p className="categories-muted text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Asset Valuation</p>
+              <p className="categories-readable mt-2 truncate font-mono text-base font-extrabold text-slate-950 dark:text-white">
                 PKR {drilldownBooks.reduce((sum, b) => sum + (bookTransactionMetrics.get(b.id)?.valueCost || 0), 0).toLocaleString()}
               </p>
-              <div className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Purchase cost cumulative</div>
+              <div className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Purchase cost cumulative</div>
             </div>
           </div>
 
           {/* DRILLDOWN DETAIL TABLE */}
-          <div className="subjects-panel overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
+          <div className="categories-panel overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827]">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4 text-xs font-bold text-slate-800 dark:border-white/10 dark:bg-[#0d2135] dark:text-slate-200">
-              <span className="subjects-readable flex items-center gap-1.5 font-display font-extrabold text-slate-950 dark:text-[#f7ddb0]">
-                <span>Books Under {drilldownSubject.name}</span>
+              <span className="categories-readable flex items-center gap-1.5 font-display font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+                <span>Books Under {drilldownCategory.name}</span>
               </span>
-              <span className="subjects-muted rounded-xl border border-slate-300 bg-white px-3 py-1.5 font-mono text-[10px] font-extrabold text-slate-600 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-300">Records: {drilldownBooks.length}</span>
+              <span className="categories-muted rounded-xl border border-slate-300 bg-white px-3 py-1.5 font-mono text-[10px] font-extrabold text-slate-600 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-300">Records: {drilldownBooks.length}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1180px] text-left text-xs text-slate-700 dark:text-slate-200">
@@ -729,8 +729,8 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                 <tbody className="divide-y divide-slate-200 bg-white dark:divide-white/10 dark:bg-[#081827]">
                   {drilldownBooks.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="subjects-muted py-12 text-center font-mono font-semibold text-slate-600 dark:text-slate-400">
-                        No books have been registered under this subject yet.
+                      <td colSpan={10} className="categories-muted py-12 text-center font-mono font-semibold text-slate-600 dark:text-slate-400">
+                        No books have been registered under this category yet.
                       </td>
                     </tr>
                   ) : (
@@ -763,23 +763,23 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                         <tr key={book.id} className="bg-white transition-colors hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c]">
                           <td className="px-5 py-4">
                             <div>
-                              <p className="subjects-readable text-xs font-extrabold text-slate-950 dark:text-white sm:text-sm">{book.title}</p>
-                              <p className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Code: {book.book_number} {book.ISBN ? `| ISBN: ${book.ISBN}` : ""}</p>
+                              <p className="categories-readable text-xs font-extrabold text-slate-950 dark:text-white sm:text-sm">{book.title}</p>
+                              <p className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">Code: {book.book_number} {book.ISBN ? `| ISBN: ${book.ISBN}` : ""}</p>
                             </div>
                           </td>
-                          <td className="subjects-muted px-5 py-4 font-semibold text-slate-600 dark:text-slate-300">{pubName}</td>
+                          <td className="categories-muted px-5 py-4 font-semibold text-slate-600 dark:text-slate-300">{pubName}</td>
                           <td className="px-5 py-4">
                             <div>
-                              <p className="subjects-readable font-extrabold text-slate-900 dark:text-white">{className}</p>
-                              <p className="subjects-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">{catName}</p>
+                              <p className="categories-readable font-extrabold text-slate-900 dark:text-white">{className}</p>
+                              <p className="categories-muted mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">{catName}</p>
                             </div>
                           </td>
-                          <td className="subjects-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.warehouseStock}</td>
-                          <td className="subjects-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.shopStock}</td>
-                          <td className="subjects-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.schoolStock}</td>
-                          <td className="subjects-readable bg-amber-50 px-5 py-4 text-center font-mono font-extrabold text-slate-950 dark:bg-amber-300/10 dark:text-white">{m.totalStock}</td>
+                          <td className="categories-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.warehouseStock}</td>
+                          <td className="categories-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.shopStock}</td>
+                          <td className="categories-muted px-5 py-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-300">{m.schoolStock}</td>
+                          <td className="categories-readable bg-amber-50 px-5 py-4 text-center font-mono font-extrabold text-slate-950 dark:bg-amber-300/10 dark:text-white">{m.totalStock}</td>
                           <td className="px-5 py-4 text-center font-mono font-extrabold text-blue-700 dark:text-blue-300">{m.soldQty}</td>
-                          <td className="subjects-muted px-5 py-4 text-center font-mono text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                          <td className="categories-muted px-5 py-4 text-center font-mono text-[10px] font-semibold text-slate-600 dark:text-slate-300">
                             <span className="text-emerald-600 font-bold" title="Customer returns">{m.customerReturnQty}</span> / <span className="text-rose-600 font-bold" title="Publisher returns">{m.publisherReturnQty}</span>
                           </td>
                           <td className="px-5 py-4 text-center">
@@ -802,12 +802,12 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
       {/* CREATE/EDIT DIALOG MODAL */}
       {isFormOpen && (
         <ScreenModalPortal>
-          <div className="subjects-panel flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-amber-300 bg-white shadow-[0_38px_125px_rgba(15,23,42,0.48)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_38px_125px_rgba(0,0,0,0.68)] animate-scaleIn">
+          <div className="categories-panel flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-amber-300 bg-white shadow-[0_38px_125px_rgba(15,23,42,0.48)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_38px_125px_rgba(0,0,0,0.68)] animate-scaleIn">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-white/10 dark:bg-[#0d2135]">
-              <h2 className="subjects-readable font-display text-base font-extrabold text-slate-950 dark:text-[#f7ddb0]">
-                {editingSubject ? "Modify Subject Details" : "Register New Academic Subject"}
+              <h2 className="categories-readable font-display text-base font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+                {editingCategory ? "Modify Category Details" : "Register New Academic Category"}
               </h2>
               <button 
                 onClick={() => setIsFormOpen(false)} 
@@ -820,25 +820,25 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
             {/* Modal Form */}
             <form onSubmit={handleSave} className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-white p-6 text-slate-950 dark:bg-[#081827] dark:text-slate-100">
               <div className="text-xs">
-                <label className="subjects-readable mb-2 block text-xs font-extrabold text-slate-900 dark:text-slate-100">
-                  Subject Name <span className="text-rose-500">*</span>
+                <label className="categories-readable mb-2 block text-xs font-extrabold text-slate-900 dark:text-slate-100">
+                  Category Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  value={subjectName}
-                  onChange={(e) => setSubjectName(e.target.value)}
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
                   placeholder="e.g. Physics, Urdu, English..."
-                  className="subjects-control h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-500 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-400 dark:hover:border-amber-300/40 dark:focus:border-amber-300"
+                  className="categories-control h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-500 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-400 dark:hover:border-amber-300/40 dark:focus:border-amber-300"
                 />
               </div>
 
               <div className="text-xs">
-                <label className="subjects-readable mb-2 block text-xs font-extrabold text-slate-900 dark:text-slate-100">Subject Status</label>
+                <label className="categories-readable mb-2 block text-xs font-extrabold text-slate-900 dark:text-slate-100">Category Status</label>
                 <select
-                  value={subjectStatus}
-                  onChange={(e) => setSubjectStatus(e.target.value as any)}
-                  className="subjects-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
+                  value={categoryStatus}
+                  onChange={(e) => setCategoryStatus(e.target.value as any)}
+                  className="categories-control h-12 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -864,7 +864,7 @@ export default function SubjectsView({ data, onRefresh, onShowNotification }: Su
                       <span>Saving...</span>
                     </>
                   ) : (
-                    <span>Save Subject</span>
+                    <span>Save Category</span>
                   )}
                 </button>
               </div>

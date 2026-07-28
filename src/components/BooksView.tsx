@@ -1,22 +1,40 @@
 import React, { useState } from "react";
 import {
-  Plus,
-  Edit2,
-  ShieldAlert,
-  X,
-  Search,
+  BadgeDollarSign,
   BookOpen,
+  Edit2,
+  GraduationCap,
+  Library,
+  Plus,
+  Search,
+  ShieldAlert,
   Sparkles,
+  Tags,
   Trash2,
+  UserRound,
+  X,
 } from "lucide-react";
 import { DatabaseSchema, Book } from "../types";
 import { apiFetch } from "../api/http";
+import ScreenModalPortal from "./ui/ScreenModalPortal";
 
 interface BooksViewProps {
   data: DatabaseSchema;
   onRefresh: () => void;
   onShowNotification: (msg: string, type: "success" | "error") => void;
 }
+
+const INPUT_CLASS =
+  "h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:focus:ring-amber-300/10 dark:[color-scheme:dark]";
+
+const PANEL_CLASS =
+  "rounded-[2rem] border border-slate-200/90 bg-white/95 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-amber-300/15 dark:bg-[#10263c]/95 dark:shadow-[0_24px_70px_rgba(0,0,0,0.35)]";
+
+const SOFT_PANEL_CLASS =
+  "rounded-2xl border border-slate-200 bg-slate-50/90 dark:border-white/10 dark:bg-white/[0.04]";
+
+const LABEL_CLASS =
+  "mb-2 block text-xs font-extrabold text-slate-800 dark:text-slate-200";
 
 export default function BooksView({
   data,
@@ -39,19 +57,19 @@ export default function BooksView({
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
   const activePublishers = data.publishers.filter(
-    (publisher) => publisher.status === "active"
+    (publisher) => publisher.status === "active",
   );
 
   const activeCategories = data.categories.filter(
-    (category) => category.status === "active"
+    (category) => category.status === "active",
   );
 
   const activeSubjects = data.subjects.filter(
-    (subject) => subject.status === "active"
+    (subject) => subject.status === "active",
   );
 
   const activeClasses = data.classes.filter(
-    (grade) => grade.status === "active"
+    (grade) => grade.status === "active",
   );
 
   const handleOpenAdd = () => {
@@ -85,26 +103,26 @@ export default function BooksView({
   const handleDeleteBook = async (bookId: string) => {
     if (
       !window.confirm(
-        "Are you sure you want to permanently delete this book title? This action cannot be undone."
+        "Are you sure you want to permanently delete this book title? This action cannot be undone.",
       )
     ) {
       return;
     }
 
     try {
-      const res = await apiFetch(`/api/books/${bookId}`, {
+      const response = await apiFetch(`/api/books/${bookId}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to delete book.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete book.");
       }
 
       onShowNotification("Book permanently deleted!", "success");
       onRefresh();
-    } catch (err: any) {
-      onShowNotification(err.message, "error");
+    } catch (error: any) {
+      onShowNotification(error.message, "error");
     }
   };
 
@@ -112,7 +130,7 @@ export default function BooksView({
     const newStatus = book.status === "active" ? "inactive" : "active";
 
     try {
-      const res = await apiFetch(`/api/books/${book.id}`, {
+      const response = await apiFetch(`/api/books/${book.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -122,18 +140,20 @@ export default function BooksView({
         }),
       });
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error("Failed to change book status.");
       }
 
       onShowNotification(
-        `Book is now ${newStatus === "active" ? "activated" : "deactivated"}!`,
-        "success"
+        `Book is now ${
+          newStatus === "active" ? "activated" : "deactivated"
+        }!`,
+        "success",
       );
 
       onRefresh();
-    } catch (err: any) {
-      onShowNotification(err.message, "error");
+    } catch (error: any) {
+      onShowNotification(error.message, "error");
     }
   };
 
@@ -186,14 +206,19 @@ export default function BooksView({
         class_id: classId,
         purchase_cost: Number(purchaseCost),
         sale_price: Number(salePrice),
-        reorder_level: 0,
+        reorder_level: editingBook
+          ? Number(editingBook.reorder_level || 0)
+          : 0,
         status,
       };
 
-      const url = editingBook ? `/api/books/${editingBook.id}` : "/api/books";
+      const url = editingBook
+        ? `/api/books/${editingBook.id}`
+        : "/api/books";
+
       const method = editingBook ? "PUT" : "POST";
 
-      const res = await apiFetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -201,22 +226,22 @@ export default function BooksView({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to save book.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save book.");
       }
 
       onShowNotification(
         editingBook
           ? `Book "${title}" updated successfully!`
           : `Book "${title}" registered successfully!`,
-        "success"
+        "success",
       );
 
       setIsFormOpen(false);
       onRefresh();
-    } catch (err: any) {
-      onShowNotification(err.message, "error");
+    } catch (error: any) {
+      onShowNotification(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -224,17 +249,22 @@ export default function BooksView({
 
   const filteredBooks = data.books.filter((book) => {
     const publisherName =
-      data.publishers.find((publisher) => publisher.id === book.publisher_id)
-        ?.publisher_name || "";
+      data.publishers.find(
+        (publisher) => publisher.id === book.publisher_id,
+      )?.publisher_name || "";
 
     const categoryName =
-      data.categories.find((category) => category.id === book.category_id)?.name || "";
+      data.categories.find(
+        (category) => category.id === book.category_id,
+      )?.name || "";
 
     const subjectName =
-      data.subjects.find((subject) => subject.id === book.subject_id)?.name || "";
+      data.subjects.find((subject) => subject.id === book.subject_id)
+        ?.name || "";
 
     const className =
-      data.classes.find((grade) => grade.id === book.class_id)?.name || "";
+      data.classes.find((grade) => grade.id === book.class_id)?.name ||
+      "";
 
     const query = searchQuery.toLowerCase();
 
@@ -249,294 +279,493 @@ export default function BooksView({
   });
 
   return (
-    <div id="books-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-rose-500" />
-            <span>Book Registry</span>
-          </h1>
+    <div
+      id="books-view"
+      className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100"
+    >
+      <section className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#10263c] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.11),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_34%)]" />
 
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            Register book titles only. Stock will be added separately from the Add Stock page.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="px-4.5 py-2.5 btn-premium-pink text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer self-start shadow-sm"
-        >
-          <Plus className="w-4 h-4 text-white" />
-          <span>Register New Book</span>
-        </button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <Search className="w-4 h-4" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div
+              className="
+                grid h-14 w-14 shrink-0 place-items-center rounded-2xl
+                border border-amber-300 bg-amber-50 text-amber-800
+                shadow-[0_12px_28px_rgba(180,123,24,0.15)]
+                dark:border-amber-300/25 dark:bg-amber-300/10
+                dark:text-amber-300
+              "
+            >
+              <Library className="h-7 w-7" />
             </div>
 
-            <input
-              type="text"
-              placeholder="Search by title, book code, publisher, subject, grade, or category..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="h-10 w-full bg-transparent border-0 text-slate-700 font-bold text-xs focus:ring-0 focus:outline-none placeholder:text-slate-400"
-            />
-
-            {searchQuery.trim() && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] font-extrabold text-slate-600 hover:bg-slate-100"
+            <div>
+              <div
+                className="
+                  inline-flex items-center gap-2 rounded-full
+                  border border-amber-300 bg-amber-50 px-3 py-1
+                  text-[9px] font-black uppercase tracking-[0.22em]
+                  text-amber-800
+                  dark:border-amber-300/25 dark:bg-amber-300/10
+                  dark:text-amber-200
+                "
               >
-                Clear
-              </button>
-            )}
+                <Sparkles className="h-3.5 w-3.5" />
+                Master book catalog
+              </div>
+
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Book Registry
+              </h1>
+
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Register and maintain book titles. Physical quantity is
+                received separately through the Add Stock page.
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="
+              inline-flex items-center justify-center gap-2 self-start
+              rounded-2xl border border-amber-400
+              bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)]
+              px-5 py-3 text-sm font-extrabold text-slate-950
+              shadow-[0_14px_32px_rgba(180,123,24,0.24)]
+              transition hover:-translate-y-0.5 hover:brightness-105
+              dark:border-amber-300/40 dark:text-[#081827]
+              lg:self-center
+            "
+          >
+            <Plus className="h-4 w-4" />
+            <span>Register New Book</span>
+          </button>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Book Titles</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">{data.books.length.toLocaleString()}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">All registered titles</p>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200/80 px-4 py-3 rounded-2xl text-xs text-slate-500 flex items-center gap-1.5 font-semibold">
-          <span>Book Titles Count:</span>
-          <span className="text-rose-600 font-extrabold font-mono">
-            {filteredBooks.length}
-          </span>
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Active Titles</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">
+            {data.books.filter((book) => book.status === "active").length.toLocaleString()}
+          </p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Available for daily operations</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+          <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Publishers</p>
+          <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">{activePublishers.length.toLocaleString()}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Active publishing partners</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      <div className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+            <Search className="h-5 w-5" />
+          </div>
+
+          <input
+            type="text"
+            placeholder="Search by title, code, publisher, subject, grade, or category..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="h-11 w-full border-0 bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-white"
+          />
+
+          {searchQuery.trim() && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {filteredBooks.length === 0 ? (
-          <div className="col-span-full text-center py-16 bg-slate-50 rounded-2xl border border-slate-200 text-slate-400 font-mono text-xs">
-            No registered book titles found matching your search term.
+          <div
+            className="
+              col-span-full rounded-[2rem] border border-dashed
+              border-slate-300 bg-white/90 py-16 text-center
+              shadow-sm dark:border-white/15 dark:bg-white/[0.04]
+            "
+          >
+            <BookOpen className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
+            <p className="mt-4 text-sm font-extrabold text-slate-700 dark:text-slate-300">
+              No registered book titles found.
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Try a different search term or register a new book.
+            </p>
           </div>
         ) : (
           filteredBooks.map((book) => {
             const publisherName =
-              data.publishers.find((publisher) => publisher.id === book.publisher_id)
-                ?.publisher_name || "N/A";
+              data.publishers.find(
+                (publisher) => publisher.id === book.publisher_id,
+              )?.publisher_name || "N/A";
 
             const categoryName =
-              data.categories.find((category) => category.id === book.category_id)?.name ||
-              "N/A";
+              data.categories.find(
+                (category) => category.id === book.category_id,
+              )?.name || "N/A";
 
             const subjectName =
-              data.subjects.find((subject) => subject.id === book.subject_id)?.name ||
-              "N/A";
+              data.subjects.find(
+                (subject) => subject.id === book.subject_id,
+              )?.name || "N/A";
 
             const className =
-              data.classes.find((grade) => grade.id === book.class_id)?.name || "N/A";
+              data.classes.find((grade) => grade.id === book.class_id)
+                ?.name || "N/A";
 
             const hasHistory =
-              (data.stock_history || []).some((history) => history.book_id === book.id) ||
-              (data.sale_items || []).some((sale) => sale.book_id === book.id) ||
+              (data.stock_history || []).some(
+                (history) => history.book_id === book.id,
+              ) ||
+              (data.sale_items || []).some(
+                (sale) => sale.book_id === book.id,
+              ) ||
               (data.customer_returns || []).some(
-                (returnRow) => returnRow.book_id === book.id
+                (returnRow) => returnRow.book_id === book.id,
               ) ||
               (data.publisher_returns || []).some(
-                (returnRow) => returnRow.book_id === book.id
+                (returnRow) => returnRow.book_id === book.id,
               ) ||
               (data.stock_transfers || []).some(
-                (transfer) => transfer.book_id === book.id
+                (transfer) => transfer.book_id === book.id,
               ) ||
               (data.damage_loss_records || []).some(
-                (damage) => damage.book_id === book.id
+                (damage) => damage.book_id === book.id,
               );
 
             return (
-              <div
+              <article
                 key={book.id}
-                className="glass-panel border border-white/60 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-rose-200 hover:shadow-md transition-all group"
+                className="
+                  group flex min-h-[390px] flex-col overflow-hidden
+                  rounded-3xl border border-slate-200
+                  bg-white shadow-sm transition-all
+                  hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg
+                  dark:border-white/10 dark:bg-[#10263c]
+                "
               >
-                <div className="h-28 bg-gradient-to-br from-rose-50 to-slate-50 p-4 relative flex items-end">
-                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-white rounded-lg border border-slate-200/80 text-[9px] font-bold font-mono text-rose-600 shadow-sm">
+                <div
+                  className="
+                    relative flex min-h-[145px] items-end overflow-hidden
+                    border-b border-slate-200
+                    bg-[linear-gradient(135deg,#fff9e9_0%,#ffffff_55%,#edf4ff_100%)]
+                    p-5
+                    dark:border-white/10
+                    dark:bg-[linear-gradient(135deg,#0b1c2f_0%,#102840_100%)]
+                  "
+                >
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full border border-amber-300/20" />
+
+                  <div
+                    className="
+                      absolute left-4 top-4 rounded-xl border
+                      border-amber-300 bg-white px-2.5 py-1
+                      font-mono text-[10px] font-extrabold
+                      text-amber-800 shadow-sm
+                      dark:border-amber-300/25
+                      dark:bg-amber-300/10 dark:text-amber-200
+                    "
+                  >
                     {book.book_number}
                   </div>
 
-                  <div className="absolute top-3 right-3">
-                    <span
-                      className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${
-                        book.status === "active"
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                          : "bg-rose-50 text-rose-600 border-rose-200"
-                      }`}
-                    >
-                      {book.status}
-                    </span>
-                  </div>
+                  <span
+                    className={`absolute right-4 top-4 rounded-full border px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide ${
+                      book.status === "active"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200"
+                        : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
+                    }`}
+                  >
+                    {book.status}
+                  </span>
 
-                  <div className="flex gap-2.5 items-center">
-                    <div className="w-10 h-14 bg-white rounded border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform">
-                      <BookOpen className="w-5 h-5 text-slate-300" />
+                  <div className="relative flex min-w-0 items-center gap-4">
+                    <div
+                      className="
+                        grid h-16 w-12 shrink-0 place-items-center
+                        rounded-xl border border-amber-200 bg-white
+                        text-amber-700 shadow-md transition
+                        group-hover:-rotate-1 group-hover:scale-105
+                        dark:border-amber-300/20 dark:bg-white/[0.06]
+                        dark:text-amber-300
+                      "
+                    >
+                      <BookOpen className="h-6 w-6" />
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <h3
-                        className="text-slate-800 text-xs font-bold leading-tight group-hover:text-rose-500 transition-colors line-clamp-2"
+                        className="
+                          line-clamp-2 text-base font-extrabold leading-snug
+                          text-slate-950 transition
+                          group-hover:text-amber-800
+                          dark:text-[#f7ddb0]
+                          dark:group-hover:text-amber-200
+                        "
                         title={book.title}
                       >
                         {book.title}
                       </h3>
 
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">
+                      <p className="mt-1 truncate text-xs font-semibold text-slate-600 dark:text-slate-400">
                         By {publisherName}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 space-y-2.5 text-[11px] text-slate-500 border-t border-slate-100 bg-white/40 flex-1">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-50/50 p-1.5 rounded-xl border border-slate-100 text-center">
-                      <span className="block text-[8px] text-slate-400 uppercase font-bold">
-                        Subject
-                      </span>
-                      <span className="text-slate-700 font-bold truncate block">
-                        {subjectName}
-                      </span>
-                    </div>
+                <div className="flex-1 space-y-4 p-5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <BookMeta
+                      icon={Tags}
+                      label="Subject"
+                      value={subjectName}
+                    />
 
-                    <div className="bg-slate-50/50 p-1.5 rounded-xl border border-slate-100 text-center">
-                      <span className="block text-[8px] text-slate-400 uppercase font-bold">
-                        Grade
-                      </span>
-                      <span className="text-slate-700 font-bold truncate block">
-                        {className}
-                      </span>
-                    </div>
+                    <BookMeta
+                      icon={GraduationCap}
+                      label="Grade"
+                      value={className}
+                    />
+
+                    <BookMeta
+                      icon={Library}
+                      label="Category"
+                      value={categoryName}
+                    />
+
+                    <BookMeta
+                      icon={UserRound}
+                      label="Publisher"
+                      value={publisherName}
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-50/50 p-1.5 rounded-xl border border-slate-100 text-center">
-                      <span className="block text-[8px] text-slate-400 uppercase font-bold">
-                        Category
-                      </span>
-                      <span className="text-slate-700 font-bold truncate block">
-                        {categoryName}
-                      </span>
-                    </div>
-
-                    <div className="bg-slate-50/50 p-1.5 rounded-xl border border-slate-100 text-center">
-                      <span className="block text-[8px] text-slate-400 uppercase font-bold">
-                        Publisher
-                      </span>
-                      <span className="text-slate-700 font-bold truncate block">
-                        {publisherName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
+                  <div
+                    className="
+                      grid grid-cols-2 gap-3 rounded-2xl border
+                      border-slate-200 bg-slate-50 p-4
+                      dark:border-white/10 dark:bg-white/[0.04]
+                    "
+                  >
                     <div>
-                      <span className="text-[9px] text-slate-400 uppercase font-bold block">
+                      <span className="block text-[9px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Purchase Cost
                       </span>
-                      <span className="font-mono font-bold text-slate-600">
-                        PKR {book.purchase_cost}
+                      <span className="mt-1 block font-mono text-sm font-extrabold text-slate-800 dark:text-slate-200">
+                        PKR {Number(book.purchase_cost || 0).toLocaleString()}
                       </span>
                     </div>
 
                     <div className="text-right">
-                      <span className="text-[9px] text-slate-400 uppercase font-bold block">
+                      <span className="block text-[9px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Sale Price
                       </span>
-                      <span className="font-mono font-extrabold text-rose-500">
-                        PKR {book.sale_price}
+                      <span className="mt-1 block font-mono text-sm font-extrabold text-amber-700 dark:text-amber-300">
+                        PKR {Number(book.sale_price || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-100 text-[9px] text-slate-400 font-mono flex items-center justify-between font-bold">
-                  <div>
-                    <div>Code: {book.book_number}</div>
-                    <div>Grade: {className}</div>
+                <div
+                  className="
+                    flex items-center justify-between gap-3 border-t
+                    border-slate-200 bg-slate-50/90 px-5 py-3
+                    dark:border-white/10 dark:bg-white/[0.035]
+                  "
+                >
+                  <div className="min-w-0 font-mono text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="truncate">Code: {book.book_number}</div>
+                    <div className="truncate">Grade: {className}</div>
                   </div>
 
-                  <div className="flex gap-1.5 items-center">
+                  <div className="flex shrink-0 items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(book)}
-                      className="p-1 text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg cursor-pointer transition-all shadow-xs"
+                      className="
+                        grid h-9 w-9 place-items-center rounded-xl border
+                        border-slate-300 bg-white text-slate-600 shadow-sm
+                        transition hover:border-amber-300 hover:bg-amber-50
+                        hover:text-amber-800
+                        dark:border-white/15 dark:bg-white/[0.05]
+                        dark:text-slate-300
+                        dark:hover:border-amber-300/30
+                        dark:hover:bg-amber-300/10
+                        dark:hover:text-amber-200
+                      "
                       title="Edit Book Details"
                     >
-                      <Edit2 className="w-3 h-3" />
+                      <Edit2 className="h-4 w-4" />
                     </button>
 
                     {hasHistory ? (
                       <button
                         type="button"
                         onClick={() => toggleDeactivateBook(book)}
-                        className={`p-1 border rounded-lg cursor-pointer transition-all shadow-xs ${
+                        className={`grid h-9 w-9 place-items-center rounded-xl border shadow-sm transition ${
                           book.status === "active"
-                            ? "text-rose-500 hover:text-rose-600 bg-white hover:bg-rose-50 border-rose-100"
-                            : "text-emerald-500 hover:text-emerald-600 bg-white hover:bg-emerald-50 border-emerald-100"
+                            ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200"
                         }`}
                         title={
-                          book.status === "active" ? "Deactivate Book" : "Activate Book"
+                          book.status === "active"
+                            ? "Deactivate Book"
+                            : "Activate Book"
                         }
                       >
-                        <ShieldAlert className="w-3 h-3" />
+                        <ShieldAlert className="h-4 w-4" />
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleDeleteBook(book.id)}
-                        className="p-1 text-rose-500 hover:text-rose-600 bg-white hover:bg-rose-50 border border-rose-100 rounded-lg cursor-pointer transition-all shadow-xs"
+                        className="
+                          grid h-9 w-9 place-items-center rounded-xl border
+                          border-rose-200 bg-rose-50 text-rose-700
+                          shadow-sm transition hover:bg-rose-100
+                          dark:border-rose-400/20
+                          dark:bg-rose-400/10 dark:text-rose-200
+                        "
                         title="Delete Book permanently"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })
         )}
       </div>
 
       {isFormOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(15, 23, 42, 0.25)" }}
+        <ScreenModalPortal
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !loading
+            ) {
+              setIsFormOpen(false);
+            }
+          }}
         >
-          <div className="glass-panel border border-white/60 rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl my-8 bg-white">
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-rose-500" />
-                  <span>
-                    {editingBook
-                      ? `Edit Book: ${editingBook.book_number}`
-                      : "Register New Book"}
-                  </span>
-                </h2>
+          <div
+            className="
+              relative flex max-h-[92vh] w-full max-w-2xl
+              flex-col overflow-hidden rounded-[2rem]
+              border border-amber-200/80 bg-white
+              shadow-[0_35px_120px_rgba(15,23,42,0.40)]
+              dark:border-amber-300/20 dark:bg-[#10263c]
+              dark:shadow-[0_35px_120px_rgba(0,0,0,0.60)]
+            "
+          >
+            <div
+              className="
+                relative overflow-hidden border-b border-amber-200/80
+                bg-[linear-gradient(135deg,#fffdf8_0%,#fff8e8_52%,#eef4ff_100%)]
+                px-6 py-5
+                dark:border-amber-300/15
+                dark:bg-[linear-gradient(135deg,#081827_0%,#0c2238_55%,#10283f_100%)]
+              "
+            >
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full border border-amber-300/20" />
 
-                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
-                  Register book details only. Stock will be added from Add Stock.
-                </p>
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div
+                    className="
+                      grid h-11 w-11 shrink-0 place-items-center
+                      rounded-2xl border border-amber-300/70
+                      bg-white text-amber-700 shadow-sm
+                      dark:border-amber-300/25
+                      dark:bg-amber-300/10 dark:text-amber-300
+                    "
+                  >
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-extrabold text-slate-950 dark:text-[#f7ddb0]">
+                      {editingBook
+                        ? `Edit Book: ${editingBook.book_number}`
+                        : "Register New Book"}
+                    </h2>
+
+                    <p className="mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">
+                      Register book details only. Add physical quantity later
+                      from the Add Stock page.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFormOpen(false)}
+                  disabled={loading}
+                  className="
+                    grid h-10 w-10 shrink-0 place-items-center
+                    rounded-2xl border border-slate-300 bg-white
+                    text-slate-600 shadow-sm transition
+                    hover:border-amber-300 hover:bg-amber-50
+                    hover:text-amber-800 disabled:opacity-50
+                    dark:border-white/15 dark:bg-white/[0.05]
+                    dark:text-slate-300
+                    dark:hover:border-amber-300/30
+                    dark:hover:bg-amber-300/10
+                    dark:hover:text-amber-200
+                  "
+                  aria-label="Close book form"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
 
-            <form onSubmit={handleSaveBook} className="p-6 space-y-5">
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-3 text-[11px] font-semibold text-blue-700">
-                Register the book title here. Add quantity later from the Add Stock page.
+            <form
+              onSubmit={handleSaveBook}
+              className="
+                min-h-0 flex-1 space-y-5 overflow-y-auto
+                bg-white p-6 text-slate-950
+                dark:bg-[#10263c] dark:text-slate-100
+              "
+            >
+              <div
+                className="
+                  rounded-2xl border border-blue-200 bg-blue-50 p-4
+                  text-xs font-bold leading-6 text-blue-950
+                  dark:border-blue-400/20 dark:bg-blue-400/10
+                  dark:text-blue-100
+                "
+              >
+                Register the title and pricing here. Stock quantity remains
+                managed through Add Stock.
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Book Title *
                   </label>
 
@@ -546,20 +775,22 @@ export default function BooksView({
                     placeholder="Example: Physics Grade 15"
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className={INPUT_CLASS}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Publisher *
                   </label>
 
                   <select
                     required
                     value={publisherId}
-                    onChange={(event) => setPublisherId(event.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    onChange={(event) =>
+                      setPublisherId(event.target.value)
+                    }
+                    className={INPUT_CLASS}
                   >
                     <option value="" disabled>
                       Select Publisher
@@ -574,15 +805,17 @@ export default function BooksView({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Category *
                   </label>
 
                   <select
                     required
                     value={categoryId}
-                    onChange={(event) => setCategoryId(event.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    onChange={(event) =>
+                      setCategoryId(event.target.value)
+                    }
+                    className={INPUT_CLASS}
                   >
                     <option value="" disabled>
                       Select Category
@@ -597,15 +830,17 @@ export default function BooksView({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Subject *
                   </label>
 
                   <select
                     required
                     value={subjectId}
-                    onChange={(event) => setSubjectId(event.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    onChange={(event) =>
+                      setSubjectId(event.target.value)
+                    }
+                    className={INPUT_CLASS}
                   >
                     <option value="" disabled>
                       Select Subject
@@ -620,7 +855,7 @@ export default function BooksView({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Grade / Class *
                   </label>
 
@@ -628,7 +863,7 @@ export default function BooksView({
                     required
                     value={classId}
                     onChange={(event) => setClassId(event.target.value)}
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
+                    className={INPUT_CLASS}
                   >
                     <option value="" disabled>
                       Select Grade / Class
@@ -643,51 +878,72 @@ export default function BooksView({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Purchase Cost (PKR) *
                   </label>
 
-                  <input
-                    type="number"
-                    min={0}
-                    required
-                    placeholder="Example: 350"
-                    value={purchaseCost}
-                    onChange={(event) =>
-                      setPurchaseCost(
-                        event.target.value === "" ? "" : Number(event.target.value)
-                      )
-                    }
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
-                  />
+                  <div className="relative">
+                    <BadgeDollarSign className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+
+                    <input
+                      type="number"
+                      min={0}
+                      required
+                      placeholder="Example: 350"
+                      value={purchaseCost}
+                      onChange={(event) =>
+                        setPurchaseCost(
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value),
+                        )
+                      }
+                      className={`${INPUT_CLASS} pl-11`}
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                  <label className={LABEL_CLASS}>
                     Sale Price (PKR) *
                   </label>
 
-                  <input
-                    type="number"
-                    min={0}
-                    required
-                    placeholder="Example: 450"
-                    value={salePrice}
-                    onChange={(event) =>
-                      setSalePrice(
-                        event.target.value === "" ? "" : Number(event.target.value)
-                      )
-                    }
-                    className="w-full glass-input rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none"
-                  />
+                  <div className="relative">
+                    <BadgeDollarSign className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+
+                    <input
+                      type="number"
+                      min={0}
+                      required
+                      placeholder="Example: 450"
+                      value={salePrice}
+                      onChange={(event) =>
+                        setSalePrice(
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value),
+                        )
+                      }
+                      className={`${INPUT_CLASS} pl-11`}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex justify-end gap-2 text-xs font-bold">
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-white/10 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl cursor-pointer"
+                  disabled={loading}
+                  className="
+                    inline-flex items-center justify-center rounded-2xl
+                    border border-slate-300 bg-white px-5 py-3
+                    text-sm font-extrabold text-slate-800 shadow-sm
+                    transition hover:border-slate-400 hover:bg-slate-100
+                    disabled:opacity-50
+                    dark:border-white/15 dark:bg-white/[0.05]
+                    dark:text-slate-200 dark:hover:bg-white/10
+                  "
                 >
                   Cancel
                 </button>
@@ -695,19 +951,60 @@ export default function BooksView({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 btn-premium-pink text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="
+                    inline-flex items-center justify-center gap-2
+                    rounded-2xl border border-amber-400
+                    bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)]
+                    px-6 py-3 text-sm font-extrabold text-slate-950
+                    shadow-[0_12px_30px_rgba(180,123,24,0.24)]
+                    transition hover:-translate-y-0.5 hover:brightness-105
+                    disabled:cursor-not-allowed disabled:opacity-50
+                    disabled:hover:translate-y-0
+                    dark:border-amber-300/40 dark:text-[#081827]
+                  "
                 >
                   {loading && (
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950/30 border-t-slate-950" />
                   )}
 
-                  <span>{editingBook ? "Save Book" : "Register Book"}</span>
+                  <span>
+                    {editingBook ? "Save Book" : "Register Book"}
+                  </span>
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
+    </div>
+  );
+}
+
+function BookMeta({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className={SOFT_PANEL_CLASS + " min-w-0 p-3"}>
+      <div className="flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
+
+        <span className="truncate text-[9px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {label}
+        </span>
+      </div>
+
+      <p
+        className="mt-1 truncate text-xs font-extrabold text-slate-900 dark:text-white"
+        title={value}
+      >
+        {value}
+      </p>
     </div>
   );
 }

@@ -23,6 +23,7 @@ import { apiFetch, readApiError } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import type { AuthAuditLog, ManagedUser, UserRole, UserStatus } from "../auth/types";
 
+import ScreenModalPortal from "./ui/ScreenModalPortal";
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string; description: string }> = [
   { value: "super_admin", label: "Super Admin", description: "Full system and user administration access." },
   { value: "admin", label: "Admin", description: "Operational, deletion, settings, and audit access." },
@@ -276,22 +277,52 @@ export default function UserManagementView() {
   };
 
   return (
-    <div id="users-view" className="space-y-6 animate-fadeIn">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">Security administration</p>
-          <h1 className="mt-1 text-2xl font-display font-extrabold tracking-tight text-slate-900 dark:text-white">User Management</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">Create accounts, assign roles, disable access, reset passwords, unlock users, and review security activity.</p>
+    <div id="users-view" className="space-y-6 pb-12 animate-fadeIn">
+      <section className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.11),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_34%)]" />
+
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-800 shadow-[0_12px_28px_rgba(180,123,24,0.15)] dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-300">
+              <UserCog className="h-7 w-7" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-amber-800 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-200">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Security administration
+              </div>
+
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                User Management
+              </h1>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Create accounts, assign roles, control access, reset passwords, unlock users, and review security activity.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-xs font-extrabold text-slate-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+
+            <button
+              type="button"
+              onClick={openCreate}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 text-xs font-extrabold text-slate-950 shadow-[0_14px_32px_rgba(180,123,24,0.24)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827]"
+            >
+              <Plus className="h-4 w-4" />
+              Create User
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => void refresh()} className="btn-secondary flex items-center gap-2 px-4 py-2.5 text-xs font-extrabold">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
-          </button>
-          <button type="button" onClick={openCreate} className="btn-primary flex items-center gap-2 px-4 py-2.5 text-xs font-extrabold">
-            <Plus className="h-4 w-4" /> Create User
-          </button>
-        </div>
-      </div>
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -300,7 +331,7 @@ export default function UserManagementView() {
           { icon: Ban, label: "Inactive", value: stats.inactive, className: "bg-rose-50 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300" },
           { icon: LockOpen, label: "Locked", value: stats.locked, className: "bg-amber-50 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300" },
         ].map(({ icon: Icon, label, value, className }) => (
-          <div key={label} className="glass-panel rounded-3xl p-5">
+          <div key={label} className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">{label}</p>
@@ -314,28 +345,28 @@ export default function UserManagementView() {
         ))}
       </div>
 
-      <div className="glass-panel overflow-hidden rounded-3xl">
-        <div className="flex border-b border-slate-200 px-4 pt-4 dark:border-white/10">
-          <button type="button" onClick={() => setActiveTab("users")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-extrabold ${activeTab === "users" ? "border-blue-600 text-blue-600 dark:text-blue-300" : "border-transparent text-slate-500"}`}>
+      <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-[#10263c]">
+        <div className="flex flex-wrap border-b border-slate-200 bg-slate-50/80 px-4 pt-4 dark:border-white/10 dark:bg-[#10263c]">
+          <button type="button" onClick={() => setActiveTab("users")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-extrabold ${activeTab === "users" ? "border-amber-500 text-slate-950 dark:text-amber-200" : "border-transparent text-slate-500"}`}>
             <UserCog className="h-4 w-4" /> Accounts
           </button>
-          <button type="button" onClick={() => setActiveTab("audit")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-extrabold ${activeTab === "audit" ? "border-blue-600 text-blue-600 dark:text-blue-300" : "border-transparent text-slate-500"}`}>
+          <button type="button" onClick={() => setActiveTab("audit")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-extrabold ${activeTab === "audit" ? "border-amber-500 text-slate-950 dark:text-amber-200" : "border-transparent text-slate-500"}`}>
             <Activity className="h-4 w-4" /> Security Audit
           </button>
         </div>
 
         {activeTab === "users" ? (
           <>
-            <div className="grid gap-3 border-b border-slate-200 p-4 dark:border-white/10 md:grid-cols-[1fr_180px_180px]">
+            <div className="grid gap-3 border-b border-slate-200 p-5 dark:border-white/10 md:grid-cols-[minmax(0,1fr)_190px_190px] sm:p-6">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full py-2.5 pl-11 pr-4 text-sm" placeholder="Search name or email" />
+                <input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10" placeholder="Search name or email" />
               </div>
-              <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as "all" | UserRole)} className="w-full px-3 py-2.5 text-sm">
+              <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as "all" | UserRole)} className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10">
                 <option value="all">All roles</option>
                 {ROLE_OPTIONS.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
               </select>
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | UserStatus | "locked")} className="w-full px-3 py-2.5 text-sm">
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | UserStatus | "locked")} className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10">
                 <option value="all">All statuses</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -344,8 +375,8 @@ export default function UserManagementView() {
             </div>
 
             <div className="overflow-x-auto premium-scroll">
-              <table className="min-w-[1040px]">
-                <thead>
+              <table className="min-w-[1040px] w-full text-left">
+                <thead className="bg-slate-950 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-300">
                   <tr>
                     <th className="px-5 py-4 text-left">User</th>
                     <th className="px-5 py-4 text-left">Role</th>
@@ -357,23 +388,23 @@ export default function UserManagementView() {
                 </thead>
                 <tbody>
                   {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-t border-slate-100 dark:border-white/10">
+                    <tr key={user.id} className="border-t border-slate-100 transition hover:bg-amber-50/40 dark:border-white/10 dark:hover:bg-amber-300/[0.04]">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-sm font-extrabold text-white">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-900 text-sm font-extrabold text-amber-200 shadow-sm">
                             {user.name.slice(0, 1).toUpperCase()}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-extrabold text-slate-900 dark:text-white">{user.name}</p>
-                              {user.id === currentUser?.id && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-extrabold uppercase text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">You</span>}
+                              {user.id === currentUser?.id && <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200">You</span>}
                             </div>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-extrabold text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200">{roleLabel(user.role)}</span>
+                        <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-extrabold text-blue-700 dark:border-blue-300/20 dark:bg-blue-300/10 dark:text-blue-200">{roleLabel(user.role)}</span>
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap gap-2">
@@ -388,10 +419,10 @@ export default function UserManagementView() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-1.5">
-                          <button type="button" onClick={() => openEdit(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300" title="Edit user"><Edit3 className="h-4 w-4" /></button>
-                          {user.id !== currentUser?.id && <button type="button" onClick={() => openReset(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300" title="Reset password"><KeyRound className="h-4 w-4" /></button>}
-                          {user.isLocked && <button type="button" onClick={() => void unlockUser(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300" title="Unlock account"><LockOpen className="h-4 w-4" /></button>}
-                          {user.id !== currentUser?.id && <button type="button" onClick={() => void changeStatus(user)} disabled={busyId === user.id} className={`grid h-9 w-9 place-items-center rounded-xl border bg-white dark:bg-white/[0.04] ${user.status === "active" ? "border-rose-200 text-rose-600 dark:border-rose-400/20" : "border-emerald-200 text-emerald-600 dark:border-emerald-400/20"}`} title={user.status === "active" ? "Deactivate user" : "Activate user"}>{user.status === "active" ? <Ban className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}</button>}
+                          <button type="button" onClick={() => openEdit(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300" title="Edit user"><Edit3 className="h-4 w-4" /></button>
+                          {user.id !== currentUser?.id && <button type="button" onClick={() => openReset(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-600 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300" title="Reset password"><KeyRound className="h-4 w-4" /></button>}
+                          {user.isLocked && <button type="button" onClick={() => void unlockUser(user)} disabled={busyId === user.id} className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300" title="Unlock account"><LockOpen className="h-4 w-4" /></button>}
+                          {user.id !== currentUser?.id && <button type="button" onClick={() => void changeStatus(user)} disabled={busyId === user.id} className={`grid h-9 w-9 place-items-center rounded-xl border bg-white dark:bg-[#10263c] ${user.status === "active" ? "border-rose-200 text-rose-600 dark:border-rose-400/20" : "border-emerald-200 text-emerald-600 dark:border-emerald-400/20"}`} title={user.status === "active" ? "Deactivate user" : "Activate user"}>{user.status === "active" ? <Ban className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}</button>}
                         </div>
                       </td>
                     </tr>
@@ -405,8 +436,8 @@ export default function UserManagementView() {
           </>
         ) : (
           <div className="overflow-x-auto premium-scroll">
-            <table className="min-w-[1000px]">
-              <thead>
+            <table className="min-w-[1000px] w-full text-left">
+              <thead className="bg-slate-950 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-300">
                 <tr>
                   <th className="px-5 py-4 text-left">Time</th>
                   <th className="px-5 py-4 text-left">Actor</th>
@@ -418,7 +449,7 @@ export default function UserManagementView() {
               </thead>
               <tbody>
                 {auditLogs.map((log) => (
-                  <tr key={log.id} className="border-t border-slate-100 dark:border-white/10">
+                  <tr key={log.id} className="border-t border-slate-100 transition hover:bg-amber-50/40 dark:border-white/10 dark:hover:bg-amber-300/[0.04]">
                     <td className="whitespace-nowrap px-5 py-4 text-xs text-slate-500 dark:text-slate-400">{formatDate(log.timestamp)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-700 dark:text-slate-200">{log.actor_email}</td>
                     <td className="px-5 py-4"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold uppercase text-slate-700 dark:bg-white/10 dark:text-slate-200">{log.action.replaceAll("_", " ")}</span></td>
@@ -435,11 +466,11 @@ export default function UserManagementView() {
       </div>
 
       {modalMode && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm" onMouseDown={(event) => event.target === event.currentTarget && closeModal()}>
-          <div className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-white/20 bg-white shadow-2xl dark:bg-slate-900">
+        <ScreenModalPortal onMouseDown={(event) => event.target === event.currentTarget && closeModal()}>
+          <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/20 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.45)] dark:bg-slate-950">
             <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-white/10">
               <div className="flex gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-white">
+                <div className="grid h-11 w-11 place-items-center rounded-2xl border border-amber-300/25 bg-slate-950 text-amber-300">
                   {modalMode === "reset" ? <KeyRound className="h-5 w-5" /> : <UserCog className="h-5 w-5" />}
                 </div>
                 <div>
@@ -454,35 +485,35 @@ export default function UserManagementView() {
               {modalMode !== "reset" && (
                 <>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Full name</span><input value={form.name} onChange={(event) => setForm((state) => ({ ...state, name: event.target.value }))} className="w-full px-4 py-3" required /></label>
-                    <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Email address</span><input type="email" value={form.email} onChange={(event) => setForm((state) => ({ ...state, email: event.target.value }))} className="w-full px-4 py-3" placeholder="name@mjkhan.com" required /><p className="mt-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Only @mjkhan.com email addresses are allowed.</p></label>
-                    <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Role</span><select value={form.role} onChange={(event) => setForm((state) => ({ ...state, role: event.target.value as UserRole }))} className="w-full px-4 py-3">{ROLE_OPTIONS.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select></label>
-                    {modalMode === "edit" && <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Status</span><select value={form.status} onChange={(event) => setForm((state) => ({ ...state, status: event.target.value as UserStatus }))} className="w-full px-4 py-3"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>}
+                    <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Full name</span><input value={form.name} onChange={(event) => setForm((state) => ({ ...state, name: event.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10" required /></label>
+                    <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Email address</span><input type="email" value={form.email} onChange={(event) => setForm((state) => ({ ...state, email: event.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10" placeholder="name@mjkhan.com" required /><p className="mt-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Only @mjkhan.com email addresses are allowed.</p></label>
+                    <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Role</span><select value={form.role} onChange={(event) => setForm((state) => ({ ...state, role: event.target.value as UserRole }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10">{ROLE_OPTIONS.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select></label>
+                    {modalMode === "edit" && <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Status</span><select value={form.status} onChange={(event) => setForm((state) => ({ ...state, status: event.target.value as UserStatus }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>}
                   </div>
-                  <div className="rounded-2xl bg-slate-50 p-4 text-xs leading-5 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300"><span className="font-extrabold">{roleLabel(form.role)}:</span> {ROLE_OPTIONS.find((role) => role.value === form.role)?.description}</div>
+                  <div className="rounded-2xl bg-slate-50 p-4 text-xs leading-5 text-slate-600 dark:bg-[#10263c] dark:text-slate-300"><span className="font-extrabold">{roleLabel(form.role)}:</span> {ROLE_OPTIONS.find((role) => role.value === form.role)?.description}</div>
                 </>
               )}
 
               {(modalMode === "create" || modalMode === "reset") && (
                 <>
                   <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-white/10"><input type="checkbox" checked={form.generatePassword} onChange={(event) => setForm((state) => ({ ...state, generatePassword: event.target.checked, password: event.target.checked ? "" : state.password }))} className="h-4 w-4" /><div><p className="text-sm font-extrabold text-slate-900 dark:text-white">Generate a secure temporary password</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">The password is shown once after saving.</p></div></label>
-                  {!form.generatePassword && <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Temporary password</span><div className="relative"><input type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => setForm((state) => ({ ...state, password: event.target.value }))} className="w-full px-4 py-3 pr-12" minLength={6} required /><button type="button" onClick={() => setShowPassword((state) => !state)} className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div><p className="mt-2 text-[11px] text-slate-500">Minimum 6 characters. Uppercase letters, numbers, and symbols are optional.</p></label>}
+                  {!form.generatePassword && <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700 dark:text-slate-200">Temporary password</span><div className="relative"><input type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => setForm((state) => ({ ...state, password: event.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-white/10 dark:bg-[#10263c] dark:text-white dark:focus:border-amber-300/60 dark:focus:ring-amber-300/10" minLength={6} required /><button type="button" onClick={() => setShowPassword((state) => !state)} className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div><p className="mt-2 text-[11px] text-slate-500">Minimum 6 characters. Uppercase letters, numbers, and symbols are optional.</p></label>}
                 </>
               )}
 
               <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-white/10"><input type="checkbox" checked={form.mustChangePassword} onChange={(event) => setForm((state) => ({ ...state, mustChangePassword: event.target.checked }))} className="h-4 w-4" /><div><p className="text-sm font-extrabold text-slate-900 dark:text-white">Require password change at next sign-in</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Recommended for all administrator-issued passwords.</p></div></label>
 
               <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-white/10">
-                <button type="button" onClick={() => closeModal()} className="btn-secondary px-5 py-2.5 text-sm font-bold">Cancel</button>
-                <button type="submit" disabled={Boolean(busyId)} className="btn-primary px-6 py-2.5 text-sm font-extrabold">{busyId ? "Saving..." : modalMode === "create" ? "Create User" : modalMode === "edit" ? "Save Changes" : "Reset Password"}</button>
+                <button type="button" onClick={() => closeModal()} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-200 dark:hover:bg-white/[0.08]">Cancel</button>
+                <button type="submit" disabled={Boolean(busyId)} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-6 py-3 text-sm font-extrabold text-slate-950 shadow-[0_12px_30px_rgba(245,158,11,0.25)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">{busyId ? "Saving..." : modalMode === "create" ? "Create User" : modalMode === "edit" ? "Save Changes" : "Reset Password"}</button>
               </div>
             </form>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
 
       {temporaryPassword && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/75 px-4 py-6 backdrop-blur-sm">
+        <ScreenModalPortal>
           <div className="w-full max-w-lg rounded-[2rem] border border-emerald-200 bg-white p-7 shadow-2xl dark:border-emerald-400/20 dark:bg-slate-900">
             <div className="flex gap-4">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300"><ShieldCheck className="h-6 w-6" /></div>
@@ -490,9 +521,9 @@ export default function UserManagementView() {
             </div>
             <div className="mt-6 flex items-center gap-3 rounded-2xl bg-slate-950 p-4 text-emerald-300"><code className="min-w-0 flex-1 break-all text-base font-bold tracking-wide">{temporaryPassword}</code><button type="button" onClick={() => void copyTemporaryPassword()} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 hover:bg-white/20" title="Copy password"><Clipboard className="h-4 w-4" /></button></div>
             <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100"><AlertCircle className="mt-0.5 h-5 w-5 shrink-0" /><p className="text-xs leading-5">Do not send this password in a public group or store it in an unprotected document.</p></div>
-            <button type="button" onClick={() => { setTemporaryPassword(null); setTemporaryPasswordEmail(""); }} className="btn-primary mt-6 w-full px-5 py-3 text-sm font-extrabold">I have saved the password</button>
+            <button type="button" onClick={() => { setTemporaryPassword(null); setTemporaryPasswordEmail(""); }} className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-[0_12px_30px_rgba(245,158,11,0.25)] transition hover:-translate-y-0.5">I have saved the password</button>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
 
       {notification && (

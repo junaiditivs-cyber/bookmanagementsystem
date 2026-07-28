@@ -16,6 +16,7 @@ import {
 import { DatabaseSchema } from "../types";
 import { apiFetch } from "../api/http";
 
+import ScreenModalPortal from "./ui/ScreenModalPortal";
 interface GradeSetsViewProps {
   data: DatabaseSchema;
   onRefresh: () => void | Promise<void>;
@@ -82,10 +83,10 @@ const EMPTY_BOOK_FORM: AddBookForm = {
 };
 
 const MODERN_INPUT =
-  "h-12 w-full rounded-2xl border border-slate-200/80 bg-white/85 px-4 text-sm font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-blue-400/40 dark:focus:border-blue-400";
+  "h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-400 dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:focus:ring-amber-300/10 dark:[color-scheme:dark]";
 
 const MODERN_TEXTAREA =
-  "min-h-[100px] w-full resize-none rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 text-sm font-bold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-blue-400/40 dark:focus:border-blue-400";
+  "min-h-[100px] w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:placeholder:text-slate-400 dark:hover:border-amber-300/40 dark:focus:border-amber-300 dark:focus:ring-amber-300/10";
 
 function getGradeNumber(name: string) {
   const match = name.match(/\d+/);
@@ -405,29 +406,132 @@ export default function GradeSetsView({
   };
 
   return (
-    <div id="grade-sets-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800 dark:text-slate-100">
-      <div className="border-b border-slate-200/60 pb-5 dark:border-white/10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-xl font-display font-extrabold text-slate-900 dark:text-white sm:text-2xl">
-              <Layers className="h-5 w-5 text-rose-500" />
-              Grade Wise Book Library
-            </h1>
-            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
-              Add and manage books directly inside each grade card.
-            </p>
+    <div id="grade-sets-view" className="space-y-6 animate-fadeIn pb-12 text-slate-950 dark:text-slate-100">
+      <style>{`
+        #grade-sets-view {
+          color: #0f172a;
+        }
+
+        #grade-sets-view input,
+        #grade-sets-view select,
+        #grade-sets-view textarea {
+          color: #0f172a !important;
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        #grade-sets-view input::placeholder,
+        #grade-sets-view textarea::placeholder {
+          color: #64748b !important;
+          opacity: 1;
+        }
+
+        #grade-sets-view select option {
+          background: #ffffff;
+          color: #0f172a;
+        }
+
+        #grade-sets-view [class*="bg-white/"] {
+          background-color: #ffffff !important;
+        }
+
+        #grade-sets-view [class*="bg-slate-50/"] {
+          background-color: #f8fafc !important;
+        }
+
+        html.dark #grade-sets-view {
+          color: #f8fafc;
+        }
+
+        html.dark #grade-sets-view input,
+        html.dark #grade-sets-view select,
+        html.dark #grade-sets-view textarea {
+          color: #ffffff !important;
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.16) !important;
+          color-scheme: dark;
+        }
+
+        html.dark #grade-sets-view input::placeholder,
+        html.dark #grade-sets-view textarea::placeholder {
+          color: #cbd5e1 !important;
+          opacity: 1;
+        }
+
+        html.dark #grade-sets-view select option {
+          background: #10263c;
+          color: #ffffff;
+        }
+
+        html.dark #grade-sets-view [class*="text-slate-9"],
+        html.dark #grade-sets-view [class*="text-slate-8"] {
+          color: #f8fafc !important;
+        }
+
+        html.dark #grade-sets-view [class*="text-slate-7"],
+        html.dark #grade-sets-view [class*="text-slate-6"] {
+          color: #e2e8f0 !important;
+        }
+
+        html.dark #grade-sets-view [class*="text-slate-5"],
+        html.dark #grade-sets-view [class*="text-slate-4"] {
+          color: #cbd5e1 !important;
+        }
+
+        html.dark #grade-sets-view [class*="bg-white/"],
+        html.dark #grade-sets-view [class*="dark:bg-white"] {
+          background-color: #10263c !important;
+        }
+
+        html.dark #grade-sets-view [class*="bg-slate-50"],
+        html.dark #grade-sets-view [class*="dark:bg-slate"] {
+          background-color: #0d2135 !important;
+        }
+
+        html.dark #grade-sets-view table thead {
+          background-color: #10263c !important;
+          color: #e2e8f0 !important;
+        }
+
+        html.dark #grade-sets-view table tbody tr {
+          color: #f8fafc;
+        }
+      `}</style>
+      <section className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.11),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_34%)]" />
+
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-800 shadow-[0_12px_28px_rgba(180,123,24,0.15)] dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-300">
+              <Layers className="h-7 w-7" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-amber-800 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-200">
+                <BookOpen className="h-3.5 w-3.5" />
+                Grade book catalog
+              </div>
+
+              <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+                Grade Wise Book Library
+              </h1>
+
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700 dark:text-slate-300">
+                Add, review, and manage books directly inside each grade card with clear stock and set visibility.
+              </p>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={openAddGradeModal}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 px-5 py-3 text-xs font-extrabold text-white shadow-lg shadow-rose-500/20 transition-all hover:shadow-xl"
+            className="inline-flex items-center justify-center gap-2 self-start rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 py-3 text-sm font-extrabold text-slate-950 shadow-[0_14px_32px_rgba(180,123,24,0.24)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827] lg:self-center"
           >
             <Plus className="h-4 w-4" />
             Add Grade
           </button>
         </div>
-      </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard title="Grade Cards" value={totalGradeCards} helper="Active grade groups" />
@@ -435,7 +539,7 @@ export default function GradeSetsView({
         <SummaryCard title="Book Titles" value={totalGradeBooks} helper="Books linked with grades" />
       </div>
 
-      <div className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+      <div className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
             <Search className="h-5 w-5" />
@@ -451,7 +555,7 @@ export default function GradeSetsView({
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300"
             >
               Clear
             </button>
@@ -460,7 +564,7 @@ export default function GradeSetsView({
       </div>
 
       {filteredGradeRows.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center dark:border-white/10 dark:bg-[#10263c]">
           <BookOpen className="mx-auto h-8 w-8 text-slate-300" />
           <h3 className="mt-4 text-sm font-extrabold">No grades found</h3>
           <button
@@ -482,7 +586,7 @@ export default function GradeSetsView({
             return (
               <article
                 key={row.gradeId}
-                className={`overflow-hidden rounded-3xl border bg-white shadow-sm transition-all dark:bg-white/[0.04] ${
+                className={`overflow-hidden rounded-3xl border bg-white shadow-sm transition-all dark:bg-[#10263c] ${
                   isSelected
                     ? "border-rose-300 ring-4 ring-rose-100 dark:border-rose-400/50 dark:ring-rose-500/10"
                     : "border-slate-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg dark:border-white/10"
@@ -504,13 +608,13 @@ export default function GradeSetsView({
                   </div>
 
                   <div className="mt-5 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#10263c]">
                       <p className="text-[9px] font-extrabold uppercase tracking-wide text-slate-400">Book Titles</p>
                       <p className="mt-1 font-mono text-2xl font-extrabold text-blue-600 dark:text-blue-300">
                         {row.books.length.toLocaleString()}
                       </p>
                     </div>
-                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#10263c]">
                       <p className="text-[9px] font-extrabold uppercase tracking-wide text-slate-400">Total Units</p>
                       <p className="mt-1 font-mono text-2xl font-extrabold text-slate-800 dark:text-white">
                         {row.totalUnits.toLocaleString()}
@@ -526,7 +630,7 @@ export default function GradeSetsView({
                   </div>
 
                   {previewBooks.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center dark:border-white/10 dark:bg-[#10263c]">
                       <p className="text-xs font-bold text-slate-500 dark:text-slate-400">No books added yet</p>
                       <p className="mt-1 text-[10px] text-slate-400">Add the first book directly to this grade.</p>
                     </div>
@@ -535,7 +639,7 @@ export default function GradeSetsView({
                      {previewBooks.map((book) => (
   <div
     key={book.id}
-    className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.03]"
+    className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-[#10263c]"
   >
     <div className="min-w-0">
       <p className="truncate text-xs font-extrabold text-slate-800 dark:text-slate-100">
@@ -548,7 +652,7 @@ export default function GradeSetsView({
     </div>
 
     <div className="shrink-0 text-right">
-      <div className="rounded-lg bg-white px-2 py-1 font-mono text-[11px] font-extrabold text-blue-600 shadow-sm dark:bg-white/10 dark:text-blue-300">
+      <div className="rounded-lg bg-white px-2 py-1 font-mono text-[11px] font-extrabold text-blue-600 shadow-sm dark:bg-[#10263c] dark:text-blue-300">
         Stock: {book.totalStock.toLocaleString()}
       </div>
 
@@ -574,7 +678,7 @@ export default function GradeSetsView({
                     <button
                       type="button"
                       onClick={() => openAddBookModal(row.gradeId, row.gradeName)}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-xs font-extrabold text-white shadow-lg shadow-blue-500/20 hover:shadow-xl"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-4 py-3 text-xs font-extrabold text-slate-950 shadow-[0_12px_28px_rgba(180,123,24,0.22)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827]"
                     >
                       <Plus className="h-4 w-4" />
                       Add Book
@@ -582,7 +686,7 @@ export default function GradeSetsView({
                     <button
                       type="button"
                       onClick={() => handleViewAll(row.gradeId)}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-extrabold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-extrabold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-200"
                     >
                       View All
                       <ArrowRight className="h-4 w-4" />
@@ -598,7 +702,7 @@ export default function GradeSetsView({
       {selectedGrade && (
         <div
           id="selected-grade-detail"
-          className="scroll-mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]"
+          className="scroll-mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#10263c]"
         >
           <div className="border-b border-slate-100 p-5 dark:border-white/10">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -615,7 +719,7 @@ export default function GradeSetsView({
               <button
                 type="button"
                 onClick={() => openAddBookModal(selectedGrade.gradeId, selectedGrade.gradeName)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-xs font-extrabold text-white"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-4 py-3 text-xs font-extrabold text-slate-950 shadow-[0_12px_28px_rgba(180,123,24,0.22)] dark:border-amber-300/40 dark:text-[#081827]"
               >
                 <Plus className="h-4 w-4" />
                 Add Book to {selectedGrade.gradeName}
@@ -631,7 +735,7 @@ export default function GradeSetsView({
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-100 bg-slate-50 text-[10px] font-mono uppercase text-slate-400 dark:border-white/10 dark:bg-white/[0.03]">
+                <thead className="border-b border-slate-100 bg-slate-50 text-[10px] font-mono uppercase text-slate-400 dark:border-white/10 dark:bg-[#10263c]">
                   <tr>
   <th className="px-5 py-3">Book</th>
   <th className="px-5 py-3">Subject</th>
@@ -671,7 +775,7 @@ export default function GradeSetsView({
                             {book.locations.map((location, index) => (
                               <span
                                 key={`${book.id}-${location.locationName}-${index}`}
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300"
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300"
                               >
                                 <Building2 className="h-3 w-3" />
                                 {location.locationName}: {location.quantity}
@@ -697,7 +801,7 @@ export default function GradeSetsView({
             </div>
           )}
 
-          <div className="flex items-start gap-2 border-t border-slate-100 bg-slate-50 p-4 text-[11px] font-semibold text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
+          <div className="flex items-start gap-2 border-t border-slate-100 bg-slate-50 p-4 text-[11px] font-semibold text-slate-500 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-400">
             <Package className="mt-0.5 h-4 w-4 shrink-0" />
             <p>Complete sets are calculated from the lowest-stock book in this grade.</p>
           </div>
@@ -719,7 +823,7 @@ export default function GradeSetsView({
                 value={newGradeName}
                 onChange={(event) => setNewGradeName(event.target.value)}
                 placeholder="Example: Grade 5"
-                className="premium-form-input border-white/55 bg-white/50 shadow-sm backdrop-blur-xl focus:border-blue-400 focus:bg-white/75 dark:border-white/10 dark:bg-white/[0.055] dark:focus:border-blue-400/60 dark:focus:bg-white/[0.08]"
+                className="premium-form-input border-white/55 bg-white shadow-sm backdrop-blur-xl focus:border-blue-400 focus:bg-white dark:border-white/10 dark:bg-[#10263c] dark:focus:border-blue-400/60 dark:focus:bg-white/[0.08]"
                 autoFocus
               />
             </FormField>
@@ -734,17 +838,16 @@ export default function GradeSetsView({
       )}
 
       {showAddBookModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 py-4 backdrop-blur-md sm:px-6"
+        <ScreenModalPortal
           onMouseDown={(event) => {
             if (event.target === event.currentTarget && !savingBook) closeAddBookModal();
           }}
         >
-          <div className="relative flex max-h-[94vh] w-full max-w-[860px] flex-col overflow-hidden rounded-[30px] border border-white/40 bg-white/82 shadow-[0_35px_120px_rgba(15,23,42,0.42)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#0b1220]/92">
+          <div className="relative flex max-h-[94vh] w-full max-w-[860px] flex-col overflow-hidden rounded-[30px] border border-slate-300 bg-white shadow-[0_35px_120px_rgba(15,23,42,0.42)] dark:border-amber-300/20 dark:bg-[#081827]">
             <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-28 -right-24 h-80 w-80 rounded-full bg-fuchsia-500/10 blur-3xl" />
 
-            <div className="relative z-10 flex items-start justify-between gap-4 border-b border-slate-200/70 bg-white/55 px-5 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] sm:px-7">
+            <div className="relative z-10 flex items-start justify-between gap-4 border-b border-slate-200/70 bg-white px-5 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#10263c] sm:px-7">
               <div className="flex min-w-0 items-start gap-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)]">
                   <BookOpen className="h-5 w-5" />
@@ -768,7 +871,7 @@ export default function GradeSetsView({
                 onClick={() => closeAddBookModal()}
                 disabled={savingBook}
                 aria-label="Close add book form"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition hover:scale-105 hover:bg-white hover:text-slate-900 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:scale-105 hover:bg-white hover:text-slate-900 disabled:opacity-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -793,7 +896,7 @@ export default function GradeSetsView({
                     </div>
                   </div>
 
-                  <section className="rounded-3xl border border-slate-200/80 bg-white/78 p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.035] sm:p-5">
+                  <section className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-[#10263c] sm:p-5">
                     <div className="mb-5 flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
                         <BookOpen className="h-4 w-4" />
@@ -878,7 +981,7 @@ export default function GradeSetsView({
                     </div>
                   </section>
 
-                  <section className="rounded-3xl border border-slate-200/80 bg-white/78 p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.035] sm:p-5">
+                  <section className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-[#10263c] sm:p-5">
                     <div className="mb-5 flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
                         <Package className="h-4 w-4" />
@@ -980,7 +1083,7 @@ export default function GradeSetsView({
                     </div>
                   </section>
 
-                  <section className="rounded-3xl border border-slate-200/80 bg-white/78 p-4 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.035] sm:p-5">
+                  <section className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-[#10263c] sm:p-5">
                     <FormField label="Notes">
                       <textarea
                         rows={3}
@@ -1002,7 +1105,7 @@ export default function GradeSetsView({
                 </div>
               </div>
 
-              <div className="border-t border-slate-200/70 bg-white/78 px-5 py-4 backdrop-blur-2xl dark:border-white/10 dark:bg-[#0b1220]/88 sm:px-7">
+              <div className="border-t border-slate-200/70 bg-white px-5 py-4 backdrop-blur-2xl dark:border-white/10 dark:bg-[#081827] sm:px-7">
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-[10px] font-semibold text-slate-400">
                     Required fields are marked with an asterisk.
@@ -1013,7 +1116,7 @@ export default function GradeSetsView({
                       type="button"
                       onClick={() => closeAddBookModal()}
                       disabled={savingBook}
-                      className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:bg-white/10"
+                      className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300 dark:hover:bg-white/10"
                     >
                       Cancel
                     </button>
@@ -1026,7 +1129,7 @@ export default function GradeSetsView({
                         activeCategories.length === 0 ||
                         activeSubjects.length === 0
                       }
-                      className="inline-flex h-11 min-w-[145px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 text-xs font-extrabold text-white shadow-[0_14px_35px_rgba(79,70,229,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(79,70,229,0.4)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50"
+                      className="inline-flex h-11 min-w-[145px] items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 text-xs font-extrabold text-slate-950 shadow-[0_14px_35px_rgba(180,123,24,0.28)] transition hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 dark:border-amber-300/40 dark:text-[#081827]"
                     >
                       {savingBook ? (
                         <>
@@ -1045,7 +1148,7 @@ export default function GradeSetsView({
               </div>
             </form>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
     </div>
   );
@@ -1053,7 +1156,7 @@ export default function GradeSetsView({
 
 function SummaryCard({ title, value, helper }: { title: string; value: number; helper: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+    <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_35px_rgba(15,23,42,0.09)] dark:border-amber-300/15 dark:bg-[#10263c]">
       <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">{title}</p>
       <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900 dark:text-white">{value.toLocaleString()}</p>
       <p className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">{helper}</p>
@@ -1073,19 +1176,18 @@ function ModalShell({
   maxWidth: string;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-md"
+    <ScreenModalPortal
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !disabled) onClose();
       }}
     >
       <div
-        className={`relative max-h-[92vh] w-full overflow-y-auto rounded-[2rem] border border-white/45 bg-white/72 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.35)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/72 ${maxWidth}`}
+        className={`relative max-h-[92vh] w-full overflow-y-auto rounded-[2rem] border border-slate-300 bg-white p-6 shadow-[0_30px_90px_rgba(15,23,42,0.35)] dark:border-amber-300/20 dark:bg-[#081827] ${maxWidth}`}
       >
         <div className="pointer-events-none absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-white/55 via-white/20 to-blue-100/20 dark:from-white/[0.08] dark:via-transparent dark:to-blue-500/[0.06]" />
         {children}
       </div>
-    </div>
+    </ScreenModalPortal>
   );
 }
 
@@ -1110,7 +1212,7 @@ function ModalHeader({
         type="button"
         onClick={onClose}
         disabled={disabled}
-        className="rounded-xl border border-white/55 bg-white/45 p-2 text-slate-500 shadow-sm backdrop-blur-xl transition hover:bg-white/75 hover:text-slate-800 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+        className="rounded-xl border border-white/55 bg-white p-2 text-slate-500 shadow-sm backdrop-blur-xl transition hover:bg-white hover:text-slate-800 disabled:opacity-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
       >
         <X className="h-4 w-4" />
       </button>
@@ -1121,7 +1223,7 @@ function ModalHeader({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300">{label}</span>
       <div className="mt-2">{children}</div>
     </label>
   );
@@ -1146,14 +1248,14 @@ function ModalActions({
         type="button"
         onClick={onCancel}
         disabled={saving}
-        className="rounded-2xl border border-white/55 bg-white/45 px-5 py-3 text-xs font-extrabold text-slate-700 shadow-sm backdrop-blur-xl transition hover:bg-white/80 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/10"
+        className="rounded-2xl border border-white/55 bg-white px-5 py-3 text-xs font-extrabold text-slate-700 shadow-sm backdrop-blur-xl transition hover:bg-white disabled:opacity-50 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300 dark:hover:bg-white/10"
       >
         Cancel
       </button>
       <button
         type="submit"
         disabled={saving || disabled}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-extrabold text-white shadow-lg shadow-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-5 py-3 text-xs font-extrabold text-slate-950 shadow-[0_12px_28px_rgba(180,123,24,0.22)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-300/40 dark:text-[#081827]"
       >
         {saving ? (
           <>

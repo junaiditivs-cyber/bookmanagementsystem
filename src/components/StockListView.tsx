@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { DatabaseSchema, Book } from "../types";
 
+import ScreenModalPortal from "./ui/ScreenModalPortal";
 interface StockListViewProps {
   data: DatabaseSchema;
   onNavigate: (page: string) => void;
@@ -122,16 +123,181 @@ export default function StockListView({
   };
 
   return (
-    <div id="stock-list-view" className="space-y-6 animate-fadeIn pb-12 text-slate-800">
+    <div id="stock-list-view" className="space-y-6 pb-12 text-slate-950 animate-fadeIn dark:text-slate-100">
+
+      <style>{`
+        #stock-list-view .stock-readable {
+          color: #0f172a !important;
+        }
+
+        #stock-list-view .stock-muted {
+          color: #475569 !important;
+        }
+
+        #stock-list-view .stock-panel {
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 20px 55px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        #stock-list-view .stock-soft-panel {
+          background-color: #f8fafc !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        #stock-list-view .stock-control {
+          background-color: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+
+        #stock-list-view .stock-control::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
+        }
+
+        #stock-list-view table {
+          color: #334155 !important;
+        }
+
+        #stock-list-view thead {
+          background-color: #f1f5f9 !important;
+          color: #475569 !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        #stock-list-view tbody {
+          background-color: #ffffff !important;
+        }
+
+        #stock-list-view tbody tr {
+          background-color: #ffffff !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        #stock-list-view tbody tr:hover {
+          background-color: #fffbeb !important;
+        }
+
+        #stock-list-view td,
+        #stock-list-view th {
+          border-color: #e2e8f0 !important;
+        }
+
+        #stock-list-view .stock-modal-header,
+        #stock-list-view .stock-modal-footer {
+          background-color: #f8fafc !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        #stock-list-view .stock-modal-body {
+          background-color: #ffffff !important;
+          color: #334155 !important;
+        }
+
+        html.dark #stock-list-view .stock-readable {
+          color: #f8fafc !important;
+        }
+
+        html.dark #stock-list-view .stock-muted {
+          color: #cbd5e1 !important;
+        }
+
+        html.dark #stock-list-view .stock-panel {
+          background-color: #081827 !important;
+          border-color: rgba(252, 211, 77, 0.22) !important;
+          box-shadow: 0 26px 78px rgba(0, 0, 0, 0.44) !important;
+        }
+
+        html.dark #stock-list-view .stock-soft-panel {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #stock-list-view .stock-control {
+          background-color: #10263c !important;
+          border-color: rgba(255, 255, 255, 0.16) !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #stock-list-view .stock-control::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+        }
+
+        html.dark #stock-list-view option {
+          background-color: #0f2236 !important;
+          color: #ffffff !important;
+        }
+
+        html.dark #stock-list-view table {
+          color: #e2e8f0 !important;
+        }
+
+        html.dark #stock-list-view thead {
+          background-color: #10263c !important;
+          color: #cbd5e1 !important;
+          border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        html.dark #stock-list-view tbody {
+          background-color: #081827 !important;
+        }
+
+        html.dark #stock-list-view tbody tr {
+          background-color: #081827 !important;
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #stock-list-view tbody tr:hover {
+          background-color: #10263c !important;
+        }
+
+        html.dark #stock-list-view td,
+        html.dark #stock-list-view th {
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #stock-list-view .stock-modal-header,
+        html.dark #stock-list-view .stock-modal-footer {
+          background-color: #0d2135 !important;
+          border-color: rgba(255, 255, 255, 0.10) !important;
+        }
+
+        html.dark #stock-list-view .stock-modal-body {
+          background-color: #081827 !important;
+          color: #e2e8f0 !important;
+        }
+
+        @media print {
+          #stock-list-view,
+          #stock-list-view .stock-panel,
+          #stock-list-view table,
+          #stock-list-view thead,
+          #stock-list-view tbody,
+          #stock-list-view tbody tr {
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+          }
+
+          #stock-list-view td,
+          #stock-list-view th {
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+          }
+        }
+      `}</style>
+
       
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5 no-print">
+      <div className="relative overflow-hidden rounded-[2rem] border border-amber-300 bg-white px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-8 sm:py-7 no-print">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-slate-900 flex items-center gap-2">
-            <Eye className="w-5 h-5 text-rose-500" />
+          <h1 className="stock-readable flex items-center gap-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-[#f7ddb0] sm:text-3xl">
+            <Eye className="h-6 w-6 text-amber-700 dark:text-amber-300" />
             <span>Real-time Book Inventories</span>
           </h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+          <p className="stock-muted mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-700 dark:text-slate-300 sm:text-sm">
             View available balances, value holding, and statuses segmented by Warehouses, Retail Shops, and School locations.
           </p>
         </div>
@@ -139,14 +305,14 @@ export default function StockListView({
         <div className="flex gap-2 text-xs self-start sm:self-auto">
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all border border-slate-200 cursor-pointer shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-xs font-extrabold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-100 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
           >
             <Printer className="w-3.5 h-3.5 text-slate-400" />
             <span>Print List</span>
           </button>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 btn-premium-pink text-white rounded-xl font-bold transition-all cursor-pointer shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-400 bg-[linear-gradient(135deg,#8a5a11_0%,#c58a26_50%,#f0c667_100%)] px-4 py-3 text-xs font-extrabold text-slate-950 shadow-[0_12px_28px_rgba(180,123,24,0.22)] transition hover:-translate-y-0.5 hover:brightness-105 dark:border-amber-300/40 dark:text-[#081827]"
           >
             <Download className="w-3.5 h-3.5 text-white/95" />
             <span>Export Stock CSV</span>
@@ -155,20 +321,20 @@ export default function StockListView({
       </div>
 
       {/* FILTER PANEL */}
-      <div className="glass-panel border border-white/60 rounded-2xl p-4 space-y-3 no-print shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+      <div className="stock-panel space-y-4 rounded-[2rem] border border-slate-300 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] no-print">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-white/10">
           <Sliders className="w-4 h-4 text-rose-500" />
-          <span className="text-xs font-bold text-slate-800">Filter Stock Records</span>
+          <span className="stock-readable text-sm font-extrabold text-slate-950 dark:text-[#f7ddb0]">Filter Stock Records</span>
         </div>
 
-        <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
+        <div className="stock-soft-panel flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-[#10263c]">
           <Search className="w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search book title, stock code, barcode, or ISBN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-0 text-slate-700 font-medium text-xs focus:ring-0 focus:outline-none w-full"
+            className="w-full border-0 bg-transparent text-sm font-bold text-slate-950 outline-none placeholder:text-slate-500 focus:ring-0 dark:text-white dark:placeholder:text-slate-400"
           />
         </div>
 
@@ -177,7 +343,7 @@ export default function StockListView({
             <select
               value={filterPublisher}
               onChange={(e) => setFilterPublisher(e.target.value)}
-              className="w-full glass-input rounded-xl px-2.5 py-1.5 text-slate-700 font-semibold cursor-pointer focus:outline-none"
+              className="stock-control h-11 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Publishers --</option>
               {data.publishers.map(p => (
@@ -190,7 +356,7 @@ export default function StockListView({
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full glass-input rounded-xl px-2.5 py-1.5 text-slate-700 font-semibold cursor-pointer focus:outline-none"
+              className="stock-control h-11 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Categories --</option>
               {data.categories.map(c => (
@@ -203,7 +369,7 @@ export default function StockListView({
             <select
               value={filterSubject}
               onChange={(e) => setFilterSubject(e.target.value)}
-              className="w-full glass-input rounded-xl px-2.5 py-1.5 text-slate-700 font-semibold cursor-pointer focus:outline-none"
+              className="stock-control h-11 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Subjects --</option>
               {data.subjects.map(s => (
@@ -216,7 +382,7 @@ export default function StockListView({
             <select
               value={filterClass}
               onChange={(e) => setFilterClass(e.target.value)}
-              className="w-full glass-input rounded-xl px-2.5 py-1.5 text-slate-700 font-semibold cursor-pointer focus:outline-none"
+              className="stock-control h-11 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- All Classes --</option>
               {data.classes.map(c => (
@@ -229,7 +395,7 @@ export default function StockListView({
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full glass-input rounded-xl px-2.5 py-1.5 text-slate-700 font-semibold cursor-pointer focus:outline-none"
+              className="stock-control h-11 w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-950 shadow-sm outline-none transition hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-white/15 dark:bg-[#10263c] dark:text-white dark:hover:border-amber-300/40 dark:focus:border-amber-300"
             >
               <option value="">-- Stock Alert Status --</option>
               <option value="Available">Available Only</option>
@@ -248,7 +414,7 @@ export default function StockListView({
                 setFilterClass("");
                 setFilterStatus("");
               }}
-              className="w-full px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold rounded-xl transition-all cursor-pointer border border-slate-200 text-center"
+              className="h-11 w-full rounded-2xl border border-slate-300 bg-white px-3 text-xs font-extrabold text-slate-800 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
             >
               Reset Filters
             </button>
@@ -257,10 +423,10 @@ export default function StockListView({
       </div>
 
       {/* STOCKS TABLE */}
-      <div className="glass-panel rounded-2xl border border-white/60 overflow-hidden shadow-sm print:bg-white print:border-none print:shadow-none">
+      <div className="stock-panel overflow-hidden rounded-[2rem] border border-slate-300 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)] dark:border-amber-300/20 dark:bg-[#081827] print:bg-white print:border-none print:shadow-none">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700 print:text-black">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider border-b border-slate-100 font-mono print:bg-slate-100 print:text-black">
+          <table className="w-full min-w-[1500px] text-left text-xs text-slate-700 dark:text-slate-200 print:min-w-0 print:text-black">
+            <thead className="border-b border-slate-200 bg-slate-100 text-[9px] font-extrabold uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300 print:bg-slate-100 print:text-black">
               <tr>
                 <th className="px-4 py-3.5">Code</th>
                 <th className="px-4 py-3.5">Book Title</th>
@@ -279,7 +445,7 @@ export default function StockListView({
                 <th className="px-4 py-3.5 text-right no-print">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+            <tbody className="divide-y divide-slate-200 bg-white dark:divide-white/10 dark:bg-[#081827] print:divide-slate-200">
               {filteredBooks.length === 0 ? (
                 <tr>
                   <td colSpan={15} className="text-center py-12 text-slate-400 font-mono font-medium">
@@ -295,22 +461,22 @@ export default function StockListView({
                   const { whStock, shopStock, schStock, totalStock, totalValue, stockStatus } = getBookStockDetails(book);
 
                   return (
-                    <tr key={book.id} className="hover:bg-white/40 transition-colors print:hover:bg-transparent">
+                    <tr key={book.id} className="bg-white transition-colors hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c] print:hover:bg-transparent">
                       <td className="px-4 py-3.5 font-mono font-bold text-slate-400 text-[10px]">{book.book_number}</td>
-                      <td className="px-4 py-3.5 font-bold text-slate-800 max-w-[150px] truncate" title={book.title}>
+                      <td className="stock-readable max-w-[180px] truncate px-4 py-3.5 font-extrabold text-slate-950 dark:text-white" title={book.title}>
                         {book.title}
                       </td>
-                      <td className="px-4 py-3.5 text-slate-500 font-medium truncate max-w-[100px]">{pubName}</td>
-                      <td className="px-4 py-3.5 text-slate-500">{catName}</td>
-                      <td className="px-4 py-3.5 text-slate-500">{subName}</td>
-                      <td className="px-4 py-3.5 text-slate-500">{clsName}</td>
+                      <td className="stock-muted max-w-[120px] truncate px-4 py-3.5 font-semibold text-slate-600 dark:text-slate-300">{pubName}</td>
+                      <td className="stock-muted px-4 py-3.5 font-semibold text-slate-600 dark:text-slate-300">{catName}</td>
+                      <td className="stock-muted px-4 py-3.5 font-semibold text-slate-600 dark:text-slate-300">{subName}</td>
+                      <td className="stock-muted px-4 py-3.5 font-semibold text-slate-600 dark:text-slate-300">{clsName}</td>
                       <td className="px-4 py-3.5 text-right font-mono font-medium">PKR {book.purchase_cost}</td>
                       <td className="px-4 py-3.5 text-right font-mono text-rose-600 font-bold print:text-black">PKR {book.sale_price}</td>
-                      <td className="px-3 py-3.5 text-center font-mono text-slate-400">{whStock}</td>
-                      <td className="px-3 py-3.5 text-center font-mono text-slate-400">{shopStock}</td>
-                      <td className="px-3 py-3.5 text-center font-mono text-slate-400">{schStock}</td>
-                      <td className="px-4 py-3.5 text-center font-mono font-bold text-slate-900 bg-slate-50/50">{totalStock}</td>
-                      <td className="px-4 py-3.5 text-right font-mono font-extrabold text-slate-900 bg-slate-50/50">PKR {totalValue.toLocaleString()}</td>
+                      <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-700 dark:text-slate-300">{whStock}</td>
+                      <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-700 dark:text-slate-300">{shopStock}</td>
+                      <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-700 dark:text-slate-300">{schStock}</td>
+                      <td className="stock-readable bg-slate-100 px-4 py-3.5 text-center font-mono font-extrabold text-slate-950 dark:bg-[#10263c] dark:text-white">{totalStock}</td>
+                      <td className="stock-readable bg-slate-100 px-4 py-3.5 text-right font-mono font-extrabold text-slate-950 dark:bg-[#10263c] dark:text-white">PKR {totalValue.toLocaleString()}</td>
                       <td className="px-4 py-3.5 text-center no-print">
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
                           stockStatus === "Available" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
@@ -324,7 +490,7 @@ export default function StockListView({
                         {canAddStock && (
                           <button
                             onClick={() => onTriggerAddStock(book.id)}
-                            className="p-1 bg-white hover:bg-slate-50 text-slate-600 rounded-lg hover:text-rose-500 transition-colors border border-slate-200 cursor-pointer"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-rose-400/30 dark:hover:bg-rose-400/10 dark:hover:text-rose-200"
                             title="Add stock"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -333,7 +499,7 @@ export default function StockListView({
                         {canSell && (
                           <button
                             onClick={() => onTriggerSell(book.id)}
-                            className="p-1 bg-white hover:bg-slate-50 text-slate-600 rounded-lg hover:text-emerald-500 transition-colors border border-slate-200 cursor-pointer"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-emerald-400/30 dark:hover:bg-emerald-400/10 dark:hover:text-emerald-200"
                             title="Sell book"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
@@ -343,14 +509,14 @@ export default function StockListView({
                           <>
                             <button
                               onClick={() => onTriggerCustomerReturn(book.id)}
-                              className="p-1 bg-white hover:bg-slate-50 text-slate-600 rounded-lg hover:text-indigo-500 transition-colors border border-slate-200 cursor-pointer"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-blue-400/30 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                               title="Customer return"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => onTriggerPublisherReturn(book.id)}
-                              className="p-1 bg-white hover:bg-slate-50 text-slate-600 rounded-lg hover:text-amber-500 transition-colors border border-slate-200 cursor-pointer"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
                               title="Return to publisher"
                             >
                               <ArrowLeftRight className="w-3.5 h-3.5" />
@@ -359,7 +525,7 @@ export default function StockListView({
                         )}
                         <button
                           onClick={() => setSelectedBookHistory(book)}
-                          className="p-1 bg-white hover:bg-slate-50 text-slate-600 rounded-lg hover:text-slate-900 transition-colors border border-slate-200 cursor-pointer"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
                           title="Stock ledger"
                         >
                           <History className="w-3.5 h-3.5" />
@@ -376,28 +542,28 @@ export default function StockListView({
 
       {/* SINGLE BOOK STOCK HISTORY MODAL */}
       {selectedBookHistory && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel border border-white/60 rounded-2xl w-full max-w-4xl overflow-hidden flex flex-col shadow-2xl h-[550px] bg-white">
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <ScreenModalPortal>
+          <div className="stock-panel flex h-[min(720px,92vh)] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border border-amber-300 bg-white shadow-[0_38px_125px_rgba(15,23,42,0.48)] dark:border-amber-300/20 dark:bg-[#081827] dark:shadow-[0_38px_125px_rgba(0,0,0,0.68)]">
+            <div className="stock-modal-header flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-white/10 dark:bg-[#0d2135]">
               <div>
-                <h2 className="text-sm font-bold text-slate-800">
+                <h2 className="stock-readable text-base font-extrabold text-slate-950 dark:text-[#f7ddb0]">
                   Stock Ledger: {selectedBookHistory.title} ({selectedBookHistory.book_number})
                 </h2>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                <p className="stock-muted mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-400">
                   Complete historical ledger tracking of every transaction, addition, sale, and return.
                 </p>
               </div>
               <button 
                 onClick={() => setSelectedBookHistory(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1 text-slate-700">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider font-mono border-b border-slate-100 font-bold">
+            <div className="stock-modal-body min-h-0 flex-1 overflow-auto bg-white p-6 text-slate-700 dark:bg-[#081827] dark:text-slate-200">
+              <table className="w-full min-w-[980px] text-left text-xs">
+                <thead className="border-b border-slate-200 bg-slate-100 text-[9px] font-extrabold uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-[#10263c] dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-2.5">Date / Time</th>
                     <th className="px-4 py-2.5">Location</th>
@@ -409,7 +575,7 @@ export default function StockListView({
                     <th className="px-4 py-2.5">Notes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200 bg-white dark:divide-white/10 dark:bg-[#081827]">
                   {data.stock_history.filter(h => h.book_id === selectedBookHistory.id).length === 0 ? (
                     <tr>
                       <td colSpan={8} className="text-center py-12 text-slate-400 font-mono">
@@ -423,7 +589,7 @@ export default function StockListView({
                       .map(h => {
                         const locName = data.locations.find(l => l.id === h.location_id)?.name || "N/A";
                         return (
-                          <tr key={h.id} className="hover:bg-slate-50/50">
+                          <tr key={h.id} className="bg-white transition hover:bg-amber-50/70 dark:bg-[#081827] dark:hover:bg-[#10263c]">
                             <td className="px-4 py-2.5 font-mono text-[10px] text-slate-500">
                               {new Date(h.date).toLocaleDateString()} {new Date(h.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </td>
@@ -450,16 +616,16 @@ export default function StockListView({
               </table>
             </div>
 
-            <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end">
+            <div className="stock-modal-footer flex justify-end border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-[#0d2135]">
               <button 
                 onClick={() => setSelectedBookHistory(null)}
-                className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-xs font-extrabold text-slate-800 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 dark:border-white/15 dark:bg-[#10263c] dark:text-slate-200 dark:hover:border-amber-300/30 dark:hover:bg-amber-300/10 dark:hover:text-amber-200"
               >
                 Close History
               </button>
             </div>
           </div>
-        </div>
+        </ScreenModalPortal>
       )}
     </div>
   );
